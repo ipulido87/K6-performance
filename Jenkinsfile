@@ -66,12 +66,12 @@ pipeline {
                 echo "Preparando entorno de test..."
                 sh """
                     # Limpiar reportes antiguos
-                    rm -rf ${REPORTS_DIR}/json/* ${REPORTS_DIR}/html/* || true
+                    rm -rf ${REPORTS_DIR}/json/* ${REPORTS_DIR}/allure-results/* || true
 
                     # Verificar estructura del proyecto
                     test -d src/ || { echo "ERROR: Directorio src/ no encontrado"; exit 1; }
                     test -d tests/ || { echo "ERROR: Directorio tests/ no encontrado"; exit 1; }
-                    test -f config/${params.ENVIRONMENT}.json || { echo "ERROR: Config ${params.ENVIRONMENT}.json no encontrado"; exit 1; }
+                    test -f .env || { echo "ERROR: Archivo .env no encontrado"; exit 1; }
 
                     echo "✓ Estructura del proyecto verificada"
                 """
@@ -93,6 +93,7 @@ pipeline {
                             -e ACTIVITIES=${params.ACTIVITIES} \
                             -e SIZE_MB=${params.SIZE_MB} \
                             --out json=${reportFile} \
+                            --out experimental-json-report=${REPORTS_DIR}/allure-results \
                             ${testFile} || {
                                 EXIT_CODE=\$?
                                 echo "Test completado con código de salida: \$EXIT_CODE"
@@ -110,6 +111,15 @@ pipeline {
             }
         }
 
+        stage('Generate Reports') {
+            steps {
+                echo "Generando reportes Allure..."
+                sh """
+                    npx allure generate ${REPORTS_DIR}/allure-results --clean -o ${REPORTS_DIR}/allure-report || true
+                """
+            }
+        }
+
         stage('Archive Results') {
             steps {
                 echo "Archivando resultados..."
@@ -119,14 +129,13 @@ pipeline {
                                  allowEmptyArchive: true,
                                  fingerprint: true
 
-                // Publicar reporte como HTML si existe
-                publishHTML([
-                    allowMissing: true,
-                    alwaysLinkToLastBuild: true,
-                    keepAll: true,
-                    reportDir: "${REPORTS_DIR}/html",
-                    reportFiles: '*.html',
-                    reportName: 'k6 Performance Report'
+                // Publicar reporte Allure
+                allure([
+                    includeProperties: false,
+                    jdk: '',
+                    properties: [],
+                    reportBuildPolicy: 'ALWAYS',
+                    results: [[path: "${REPORTS_DIR}/allure-results"]]
                 ])
             }
         }

@@ -6,6 +6,7 @@ import { createSoapBuilder } from "../../src/builders/index.js";
 import { validateSoapResponse } from "../../src/checks/index.js";
 import { createMetricsManager } from "../../src/metrics/index.js";
 import { createLogger, validateEnvNumber, toMB } from "../../src/utils/index.js";
+import { getEnvNumber } from "../../src/config/env-loader.js";
 
 const config = loadConfig();
 const logger = createLogger("load-test");
@@ -21,15 +22,15 @@ export const options = {
   scenarios: {
     load: {
       executor: "ramping-arrival-rate",
-      startRate: 1,
+      startRate: getEnvNumber('LOAD_START_RATE', 1),
       timeUnit: "2s",
-      preAllocatedVUs: validateEnvNumber(__ENV.PRE_VUS, 30, 1, 1000),
-      maxVUs: validateEnvNumber(__ENV.MAX_VUS, 200, 1, 2000),
+      preAllocatedVUs: validateEnvNumber(__ENV.PRE_VUS, getEnvNumber('LOAD_PRE_VUS', 30), 1, 1000),
+      maxVUs: validateEnvNumber(__ENV.MAX_VUS, getEnvNumber('LOAD_MAX_VUS', 200), 1, 2000),
       stages: [
-        { duration: "2m", target: 5 },
-        { duration: "2m", target: 10 },
-        { duration: "2m", target: 20 },
-        { duration: "2m", target: 30 },
+        { duration: "2m", target: getEnvNumber('LOAD_TARGET_RPS', 10) },
+        { duration: "2m", target: getEnvNumber('LOAD_TARGET_RPS', 10) },
+        { duration: "2m", target: getEnvNumber('LOAD_TARGET_RPS', 10) },
+        { duration: "2m", target: getEnvNumber('LOAD_TARGET_RPS', 10) },
         { duration: "1m", target: 0 },
       ],
       gracefulStop: "30s",

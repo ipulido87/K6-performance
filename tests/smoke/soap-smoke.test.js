@@ -6,6 +6,7 @@ import { createSoapBuilder } from "../../src/builders/index.js";
 import { runSoapChecks } from "../../src/checks/index.js";
 import { createMetricsManager } from "../../src/metrics/index.js";
 import { createLogger } from "../../src/utils/index.js";
+import { getEnv, getEnvNumber } from "../../src/config/env-loader.js";
 
 const config = loadConfig();
 const logger = createLogger("smoke-test");
@@ -14,8 +15,8 @@ const soapBuilder = createSoapBuilder(config.getAll());
 const metrics = createMetricsManager();
 
 export const options = {
-  vus: 1,
-  duration: "15s",
+  vus: getEnvNumber('SMOKE_VUS', 1),
+  duration: getEnv('SMOKE_DURATION', '15s'),
   thresholds: getThresholds("smoke"),
 };
 

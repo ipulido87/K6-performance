@@ -6,14 +6,15 @@ import { createSoapBuilder } from "../../src/builders/index.js";
 import { validateSoapResponse } from "../../src/checks/index.js";
 import { createMetricsManager } from "../../src/metrics/index.js";
 import { createLogger, validateEnvNumber, toMB } from "../../src/utils/index.js";
+import { getEnv, getEnvNumber } from "../../src/config/env-loader.js";
 
 const config = loadConfig();
 const logger = createLogger("soak-test");
 
 const ACTIVITIES = validateEnvNumber(__ENV.ACTIVITIES, 1, 1, 100);
 const SIZE_MB = validateEnvNumber(__ENV.SIZE_MB, 0, 0, 100);
-const SOAK_DURATION = __ENV.SOAK_DURATION || "30m";
-const SOAK_VUS = validateEnvNumber(__ENV.SOAK_VUS, 10, 1, 100);
+const SOAK_DURATION = getEnv("SOAK_DURATION", "30m");
+const SOAK_VUS = getEnvNumber("SOAK_VUS", 10);
 
 const soapBuilder = createSoapBuilder(config.getAll());
 const metrics = createMetricsManager();
@@ -24,7 +25,7 @@ export const options = {
       executor: "constant-vus",
       vus: SOAK_VUS,
       duration: SOAK_DURATION,
-      gracefulStop: "30s",
+      gracefulStop: getEnv("SOAK_GRACEFUL_STOP", "30s"),
     },
   },
   thresholds: getThresholds("soak"),

@@ -1,9 +1,0 @@
-{
-  "baseUrl": "https://httpbin.org",
-  "path": "/post",
-  "timeout": "30s",
-  "soapTemplates": {
-    "base": "data/templates/soap/connector2bridge_base.xml",
-    "activity": "data/templates/soap/activity.xml"
-  }
-}

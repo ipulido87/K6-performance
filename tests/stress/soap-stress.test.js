@@ -6,6 +6,7 @@ import { createSoapBuilder } from "../../src/builders/index.js";
 import { validateSoapResponse } from "../../src/checks/index.js";
 import { createMetricsManager } from "../../src/metrics/index.js";
 import { createLogger, validateEnvNumber, toMB } from "../../src/utils/index.js";
+import { getEnv, getEnvNumber } from "../../src/config/env-loader.js";
 
 const config = loadConfig();
 const logger = createLogger("stress-test");
@@ -22,34 +23,34 @@ export const options = {
   scenarios: {
     stress: {
       executor: "ramping-arrival-rate",
-      startRate: START_RPS,
+      startRate: getEnvNumber("STRESS_START_RPS", START_RPS),
       timeUnit: "1s",
-      preAllocatedVUs: validateEnvNumber(__ENV.PRE_VUS, 50, 1, 1000),
-      maxVUs: validateEnvNumber(__ENV.MAX_VUS, 300, 1, 2000),
+      preAllocatedVUs: getEnvNumber("STRESS_PRE_VUS", 50),
+      maxVUs: getEnvNumber("STRESS_MAX_VUS", 300),
       stages: [
-        { duration: "1m", target: 2 },
-        { duration: "1m", target: 4 },
-        { duration: "1m", target: 6 },
-        { duration: "1m", target: 8 },
-        { duration: "1m", target: 10 },
-        { duration: "1m", target: 12 },
-        { duration: "1m", target: 0 },
+        { duration: getEnv("STRESS_STAGE1_DURATION", "1m"), target: getEnvNumber("STRESS_STAGE1_TARGET", 2) },
+        { duration: getEnv("STRESS_STAGE2_DURATION", "1m"), target: getEnvNumber("STRESS_STAGE2_TARGET", 4) },
+        { duration: getEnv("STRESS_STAGE3_DURATION", "1m"), target: getEnvNumber("STRESS_STAGE3_TARGET", 6) },
+        { duration: getEnv("STRESS_STAGE4_DURATION", "1m"), target: getEnvNumber("STRESS_STAGE4_TARGET", 8) },
+        { duration: getEnv("STRESS_STAGE5_DURATION", "1m"), target: getEnvNumber("STRESS_STAGE5_TARGET", 10) },
+        { duration: getEnv("STRESS_STAGE6_DURATION", "1m"), target: getEnvNumber("STRESS_STAGE6_TARGET", 12) },
+        { duration: getEnv("STRESS_STAGE7_DURATION", "1m"), target: getEnvNumber("STRESS_STAGE7_TARGET", 0) },
       ],
-      gracefulStop: "30s",
+      gracefulStop: getEnv("STRESS_GRACEFUL_STOP", "30s"),
     },
   },
   thresholds: getThresholds("stress"),
 };
 
 export function setup() {
-  const maxVUs = validateEnvNumber(__ENV.MAX_VUS, 300, 1, 2000);
+  const maxVUs = getEnvNumber("STRESS_MAX_VUS", 300);
 
   logger.info("Starting stress test", {
     environment: config.environment,
     url: config.get("url"),
     activities: ACTIVITIES,
     sizeMB: SIZE_MB || "dynamic",
-    startRPS: START_RPS,
+    startRPS: getEnvNumber("STRESS_START_RPS", START_RPS),
     maxVUs: maxVUs,
   });
 }

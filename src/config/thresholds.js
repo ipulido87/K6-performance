@@ -1,17 +1,25 @@
+import { getEnv, getEnvNumber } from './env-loader.js';
+
 // ============================================
 // SMOKE TEST - Validación básica de funcionalidad
 // ============================================
 export const smokeThresholds = {
-  http_req_failed: ["rate<0.01"],
-  http_req_duration: ["p(95)<2000", "p(99)<3000"],
+  http_req_failed: [`rate<${getEnvNumber('SMOKE_THRESHOLD_FAILED_RATE', 0.01)}`],
+  http_req_duration: [
+    `p(95)<${getEnvNumber('SMOKE_THRESHOLD_P95_DURATION', 2000)}`,
+    `p(99)<${getEnvNumber('SMOKE_THRESHOLD_P99_DURATION', 3000)}`
+  ],
 };
 
 // ============================================
 // LOAD TEST - Comportamiento bajo carga esperada
 // ============================================
 export const loadThresholds = {
-  http_req_failed: ["rate<0.10"],
-  http_req_duration: ["p(95)<10000", "p(99)<15000"],
+  http_req_failed: [`rate<${getEnvNumber('LOAD_THRESHOLD_FAILED_RATE', 0.10)}`],
+  http_req_duration: [
+    `p(95)<${getEnvNumber('LOAD_THRESHOLD_P95_DURATION', 10000)}`,
+    `p(99)<${getEnvNumber('LOAD_THRESHOLD_P99_DURATION', 15000)}`
+  ],
 };
 
 // ============================================
@@ -19,8 +27,11 @@ export const loadThresholds = {
 // Thresholds laxos para observar dónde rompe el sistema
 // ============================================
 export const stressThresholds = {
-  http_req_failed: ["rate<0.05"],
-  http_req_duration: ["p(95)<45000", "p(99)<60000"],
+  http_req_failed: [`rate<${getEnvNumber('STRESS_THRESHOLD_FAILED_RATE', 0.05)}`],
+  http_req_duration: [
+    `p(95)<${getEnvNumber('STRESS_THRESHOLD_P95_DURATION', 45000)}`,
+    `p(99)<${getEnvNumber('STRESS_THRESHOLD_P99_DURATION', 60000)}`
+  ],
   rejected_semaphore: ["count<1e9"],   // Solo para medir, no para fallar
   shortcircuit: ["count<1e9"],          // Solo para medir, no para fallar
 };
@@ -30,8 +41,11 @@ export const stressThresholds = {
 // Thresholds estrictos para identificar el límite donde el sistema cumple SLA
 // ============================================
 export const capacityThresholds = {
-  http_req_failed: ["rate<0.01"],                    // Máximo 1% de errores
-  http_req_duration: ["p(95)<2000", "p(99)<5000"],  // SLA de latencia
+  http_req_failed: [`rate<${getEnvNumber('CAPACITY_THRESHOLD_FAILED_RATE', 0.01)}`],
+  http_req_duration: [
+    `p(95)<${getEnvNumber('CAPACITY_THRESHOLD_P95_DURATION', 2000)}`,
+    `p(99)<${getEnvNumber('CAPACITY_THRESHOLD_P99_DURATION', 5000)}`
+  ],
   shortcircuit: ["count==0"],                        // Cero circuit breakers
   rejected_semaphore: ["count==0"],                  // Cero rechazos por semáforo
   dropped_iterations: ["count==0"],                  // Cero iteraciones perdidas
@@ -41,21 +55,28 @@ export const capacityThresholds = {
 // SPIKE TEST - Resistencia a picos de tráfico
 // ============================================
 export const spikeThresholds = {
-  http_req_failed: ["rate<0.15"],
-  http_req_duration: ["p(95)<20000", "p(99)<30000"],
+  http_req_failed: [`rate<${getEnvNumber('SPIKE_THRESHOLD_FAILED_RATE', 0.15)}`],
+  http_req_duration: [
+    `p(95)<${getEnvNumber('SPIKE_THRESHOLD_P95_DURATION', 20000)}`,
+    `p(99)<${getEnvNumber('SPIKE_THRESHOLD_P99_DURATION', 30000)}`
+  ],
 };
 
 // ============================================
 // SOAK TEST - Estabilidad a largo plazo
 // ============================================
 export const soakThresholds = {
-  http_req_failed: ["rate<0.05"],
-  http_req_duration: ["p(95)<8000", "p(99)<12000", "avg<5000"],
+  http_req_failed: [`rate<${getEnvNumber('SOAK_THRESHOLD_FAILED_RATE', 0.05)}`],
+  http_req_duration: [
+    `p(95)<${getEnvNumber('SOAK_THRESHOLD_P95_DURATION', 8000)}`,
+    `p(99)<${getEnvNumber('SOAK_THRESHOLD_P99_DURATION', 12000)}`,
+    `avg<${getEnvNumber('SOAK_THRESHOLD_AVG_DURATION', 5000)}`
+  ],
 };
 
 export const sizeThresholds = {
-  http_req_failed: ["rate<0.20"],
-  http_req_duration: ["p(95)<45000"],
+  http_req_failed: [`rate<${getEnvNumber('SIZE_THRESHOLD_FAILED_RATE', 0.20)}`],
+  http_req_duration: [`p(95)<${getEnvNumber('SIZE_THRESHOLD_P95_DURATION', 45000)}`],
 };
 
 export function getThresholds(testType) {
