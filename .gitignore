@@ -1,0 +1,50 @@
+# k6 outputs
+reports/html/*
+reports/json/*
+reports/junit/*
+reports/allure-results/*
+reports/allure-report/*
+*.log
+
+# Keep directory structure
+!reports/html/.gitkeep
+!reports/json/.gitkeep
+!reports/junit/.gitkeep
+
+# Sensitive configuration
+config/prod.json
+config/secrets.json
+*.env
+.env.*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node modules (if using npm scripts)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Backup files
+*.backup
+*.bak
+
+# Test data with sensitive info
+data/sensitive/*
+
+# Legacy scripts (keep as reference but don't track)
+scripts-legacy/

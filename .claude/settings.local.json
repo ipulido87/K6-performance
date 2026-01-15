@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx k6-html-reporter:*)",
+      "Bash(npm install:*)",
+      "Bash(cmd //c k6-html-reporter --version)",
+      "Bash(npm run allure:smoke:*)",
+      "Bash(npm run smoke:*)",
+      "Bash(nvm use:*)"
+    ]
+  }
+}

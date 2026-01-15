@@ -1,0 +1,9 @@
+{
+  "baseUrl": "https://efca-m3.altia-dev.es",
+  "path": "/DET-WS",
+  "timeout": "60s",
+  "soapTemplates": {
+    "base": "data/templates/soap/connector2bridge_base.xml",
+    "activity": "data/templates/soap/activity.xml"
+  }
+}

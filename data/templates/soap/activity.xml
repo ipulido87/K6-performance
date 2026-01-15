@@ -1,0 +1,20 @@
+<ram:SpecifiedFishingActivity>
+  <ram:TypeCode listID="FLUX_FA_TYPE">FISHING_OPERATION</ram:TypeCode>
+  <ram:OccurrenceDateTime>
+    <udt:DateTime>2021-12-13T05:57:10.942Z</udt:DateTime>
+  </ram:OccurrenceDateTime>
+  <ram:VesselRelatedActivityCode listID="VESSEL_ACTIVITY">ANC</ram:VesselRelatedActivityCode>
+  <ram:SpeciesTargetCode listID="FAO_SPECIES">ALF</ram:SpeciesTargetCode>
+  <ram:OperationsQuantity unitCode="C62">1</ram:OperationsQuantity>
+
+  <ram:SpecifiedFACatch>
+    <ram:SpeciesCode listID="FAO_SPECIES">COD</ram:SpeciesCode>
+    <ram:WeightMeasure unitCode="KGM">52.65</ram:WeightMeasure>
+    <ram:TypeCode listID="FA_CATCH_TYPE">ONBOARD</ram:TypeCode>
+  </ram:SpecifiedFACatch>
+
+  <ram:RelatedFLUXLocation>
+    <ram:TypeCode listID="FLUX_LOCATION_TYPE">AREA</ram:TypeCode>
+    <ram:ID schemeID="TERRITORY">GBR</ram:ID>
+  </ram:RelatedFLUXLocation>
+</ram:SpecifiedFishingActivity>
