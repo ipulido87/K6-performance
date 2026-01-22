@@ -15,7 +15,7 @@ export const options = {
       stages: [
         { target: getEnvNumber('LOAD_TARGET_RPS', 10), duration: '3m' },  // Ramp-up
         { target: getEnvNumber('LOAD_TARGET_RPS', 10), duration: '5m' },  // Mantener carga
-        { target: 0, duration: '1m' },  // Ramp-down
+        { target: 0, duration: '1m' },  
       ],
     },
   },
