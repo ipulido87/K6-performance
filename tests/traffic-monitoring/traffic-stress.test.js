@@ -19,7 +19,7 @@ export const options = {
         { target: 8, duration: '1m' },
         { target: 10, duration: '1m' },
         { target: 12, duration: '1m' },
-        { target: 0, duration: '1m' },  // Recovery
+        { target: 0, duration: '1m' },  
       ],
       gracefulStop: getEnv('STRESS_GRACEFUL_STOP', '30s'),
     },

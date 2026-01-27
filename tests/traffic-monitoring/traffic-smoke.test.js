@@ -14,17 +14,12 @@ const ENV = __ENV.ENVIRONMENT || "local";
 const environment = getEnvironment(ENV);
 
 export function setup() {
-  console.log(`[Traffic Monitoring Smoke Test] Ambiente: ${ENV}`);
-  console.log(`[Traffic Monitoring] Auth URL: ${environment.authUrl}`);
-  console.log(`[Traffic Monitoring] Traffic URL: ${environment.trafficUrl}`);
-
   return { environment };
 }
 
 export default function(data) {
   const client = createTrafficMonitoringClient(data.environment);
 
-  // Autenticación inicial (solo se ejecuta una vez por VU)
   if (!client.token) {
     client.authenticate();
   }

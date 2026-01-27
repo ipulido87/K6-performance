@@ -3,8 +3,6 @@
  * Lee el archivo .env y proporciona acceso a las variables
  */
 
-import { SharedArray } from 'k6/data';
-
 // Cargar el archivo .env
 const envFile = open('../../.env', 'r');
 
