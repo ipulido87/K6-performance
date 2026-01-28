@@ -23,17 +23,17 @@ export const options = {
   scenarios: {
     stress: {
       executor: "ramping-arrival-rate",
-      startRate: getEnvNumber("STRESS_START_RPS", 1),        // Empieza con 1 req/s
+      startRate: getEnvNumber("STRESS_START_RPS", 1),        // Starts at 1 req/s
       timeUnit: "1s",
       preAllocatedVUs: getEnvNumber("STRESS_PRE_VUS", 20),
       maxVUs: getEnvNumber("STRESS_MAX_VUS", 50),
       stages: [
-        // Rampa gradual hasta máximo 5 RPS
+        // Gradual ramp up to max 5 RPS
         { duration: getEnv("STRESS_STAGE1_DURATION", "1m"), target: getEnvNumber("STRESS_STAGE1_TARGET", 1) },   // 1 req/s
         { duration: getEnv("STRESS_STAGE2_DURATION", "1m"), target: getEnvNumber("STRESS_STAGE2_TARGET", 2) },   // 2 req/s
         { duration: getEnv("STRESS_STAGE3_DURATION", "1m"), target: getEnvNumber("STRESS_STAGE3_TARGET", 3) },   // 3 req/s
         { duration: getEnv("STRESS_STAGE4_DURATION", "1m"), target: getEnvNumber("STRESS_STAGE4_TARGET", 4) },   // 4 req/s
-        { duration: getEnv("STRESS_STAGE5_DURATION", "2m"), target: getEnvNumber("STRESS_STAGE5_TARGET", 5) },   // 5 req/s (máximo)
+        { duration: getEnv("STRESS_STAGE5_DURATION", "2m"), target: getEnvNumber("STRESS_STAGE5_TARGET", 5) },   // 5 req/s (max)
         { duration: getEnv("STRESS_STAGE6_DURATION", "30s"), target: getEnvNumber("STRESS_STAGE6_TARGET", 0) },  // Ramp-down
       ],
       gracefulStop: getEnv("STRESS_GRACEFUL_STOP", "30s"),
@@ -48,7 +48,7 @@ export function setup() {
     url: config.get("url"),
     activities: ACTIVITIES,
     sizeMB: SIZE_MB || "dynamic",
-    stages: "1→2→3→4→5 req/s (máximo 5)",
+    stages: "1->2->3->4->5 req/s (max 5)",
     duration: "~6.5 minutes",
   });
 }

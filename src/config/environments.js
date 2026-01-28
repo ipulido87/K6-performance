@@ -1,8 +1,8 @@
 import { getEnv } from './env-loader.js';
 
 /**
- * Configuración de ambientes parametrizada
- * Los valores se cargan desde el archivo .env
+ * Parameterized environment configuration
+ * Values are loaded from the .env file
  */
 export const environments = {
   local: {

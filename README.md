@@ -1,14 +1,14 @@
 # K6 Performance Testing Framework
 
-Framework profesional de testing de rendimiento para servicios web SOAP usando K6, con integración de Grafana y generación automática de reportes PDF.
+Professional performance testing framework for SOAP web services using k6, with Grafana integration and automatic PDF report generation.
 
-## Requisitos
+## Requirements
 
 - [K6](https://k6.io/docs/getting-started/installation/)
-- [Docker](https://www.docker.com/) (para Grafana + InfluxDB)
+- [Docker](https://www.docker.com/) (for Grafana + InfluxDB)
 - [Node.js](https://nodejs.org/) >= 14.0.0
 
-## Instalacion
+## Installation
 
 ```bash
 git clone <repository>
@@ -16,28 +16,28 @@ cd k6
 npm install
 ```
 
-## Uso Rapido
+## Quick Start
 
-Cada comando ejecuta automaticamente:
-1. Inicia Grafana + InfluxDB
-2. Limpia datos anteriores
-3. Abre dashboard en navegador
-4. Ejecuta el test de K6
-5. Genera reporte PDF
-6. Abre carpeta de reportes
+Each command automatically:
+1. Starts Grafana + InfluxDB
+2. Cleans previous data
+3. Opens the dashboard in a browser
+4. Runs the k6 test
+5. Generates a PDF report
+6. Opens the reports folder
 
 ```bash
-npm run smoke      # Test de humo (15s)
-npm run load       # Test de carga (~9min)
-npm run stress     # Test de estres (~7min)
-npm run capacity   # Test de capacidad (~7min)
-npm run spike      # Test de picos (~5min)
-npm run soak       # Test de estabilidad (30min+)
-npm run size       # Test de payload
-npm run combined   # SOAP + Traffic en paralelo
+npm run smoke      # Smoke test (15s)
+npm run load       # Load test (~9min)
+npm run stress     # Stress test (~7min)
+npm run capacity   # Capacity test (~7min)
+npm run spike      # Spike test (~5min)
+npm run soak       # Soak test (30min+)
+npm run size       # Payload size test
+npm run combined   # SOAP + Traffic in parallel
 ```
 
-### Por Entorno (dev, staging, prod)
+### By Environment (dev, staging, prod)
 
 ```bash
 # Smoke
@@ -61,209 +61,209 @@ npm run spike:staging
 npm run soak:dev
 ```
 
-### Utilidades
+### Utilities
 
 ```bash
-npm start          # Solo inicia Grafana y abre dashboard
-npm stop           # Detiene Grafana
-npm run clean      # Limpia datos de Grafana
-npm run help       # Muestra ayuda
+npm start          # Start Grafana and open dashboard
+npm stop           # Stop Grafana
+npm run clean      # Clean Grafana data
+npm run help       # Show help
 ```
 
-## Tipos de Test
+## Test Types
 
 ### Smoke Test
-- **Objetivo**: Verificar funcionalidad basica
-- **Duracion**: 15 segundos
-- **Carga**: 1 VU
-- **Cuando usarlo**: Antes de otros tests, post-deployment, CI/CD
+- **Goal**: Verify basic functionality
+- **Duration**: 15 seconds
+- **Load**: 1 VU
+- **When to use**: Before other tests, post-deployment, CI/CD
 
 ### Load Test
-- **Objetivo**: Evaluar rendimiento bajo carga normal
-- **Duracion**: ~9 minutos
-- **Patron**: Rampa gradual hasta carga objetivo
-- **Cuando usarlo**: Establecer baseline, verificar SLAs
+- **Goal**: Evaluate performance under normal load
+- **Duration**: ~9 minutes
+- **Pattern**: Gradual ramp to target load
+- **When to use**: Establish baseline, verify SLAs
 
 ### Stress Test
-- **Objetivo**: Encontrar punto de ruptura
-- **Duracion**: ~7 minutos
-- **Patron**: Rampa agresiva hasta fallo
-- **Cuando usarlo**: Planificacion de capacidad, encontrar limites
+- **Goal**: Find breaking point
+- **Duration**: ~7 minutes
+- **Pattern**: Aggressive ramp to failure
+- **When to use**: Capacity planning, identify limits
 
 ### Capacity Test
-- **Objetivo**: Maxima carga sostenible dentro de SLA
-- **Duracion**: ~7 minutos
-- **Patron**: Incremento gradual con validacion de thresholds
-- **Cuando usarlo**: Definir limites operativos
+- **Goal**: Maximum sustainable load within SLA
+- **Duration**: ~7 minutes
+- **Pattern**: Gradual increase with threshold validation
+- **When to use**: Define operating limits
 
 ### Spike Test
-- **Objetivo**: Comportamiento ante picos de trafico
-- **Duracion**: ~5 minutos
-- **Patron**: Subida rapida, pico, bajada rapida
-- **Cuando usarlo**: Probar auto-scaling, resiliencia
+- **Goal**: Behavior under sudden traffic spikes
+- **Duration**: ~5 minutes
+- **Pattern**: Rapid rise, spike, rapid fall
+- **When to use**: Test auto-scaling, resiliency
 
 ### Soak Test
-- **Objetivo**: Estabilidad a largo plazo
-- **Duracion**: 30+ minutos
-- **Patron**: Carga constante prolongada
-- **Cuando usarlo**: Detectar memory leaks, degradacion
+- **Goal**: Long-term stability
+- **Duration**: 30+ minutes
+- **Pattern**: Prolonged steady load
+- **When to use**: Detect memory leaks, gradual degradation
 
 ### Size Test
-- **Objetivo**: Encontrar limite de payload
-- **Patron**: Incremento progresivo de tamano
-- **Cuando usarlo**: Definir limites de API
+- **Goal**: Find payload size limit
+- **Pattern**: Progressive size increase
+- **When to use**: Define API limits
 
-## Reportes PDF
+## PDF Reports
 
-Los reportes se generan automaticamente en `reports/pdf/` e incluyen:
+Reports are generated automatically in `reports/pdf/` and include:
 
-- **Executive Summary**: Estado general, metricas clave, health score
-- **Metrics Glossary**: Explicacion de P95, P99, RPS, Error Rate, etc.
-- **Test Description**: Que hace el test y como interpretar resultados
-- **Detailed Results**: Tablas con tiempos de respuesta, errores
-- **Interpretation**: Analisis automatico y recomendaciones
-- **Technical Details**: Configuracion y metadata
+- **Executive Summary**: Overall status, key metrics, health score
+- **Metrics Glossary**: Explanation of P95, P99, RPS, Error Rate, etc.
+- **Test Description**: What the test does and how to interpret results
+- **Detailed Results**: Tables with response times and errors
+- **Interpretation**: Automated analysis and recommendations
+- **Technical Details**: Configuration and metadata
 
 ## Grafana Dashboard
 
-Accede al dashboard en tiempo real:
+Access the dashboard in real time:
 - **URL**: http://localhost:3000
 - **Dashboard**: K6 Performance Dashboard
 
-### Metricas Disponibles
+### Available Metrics
 
-| Metrica | Descripcion |
+| Metric | Description |
 |---------|-------------|
-| `http_req_duration` | Tiempo de respuesta |
-| `http_req_failed` | Tasa de errores |
-| `http_reqs` | Total de requests |
-| `vus` | Virtual Users activos |
-| `bad_responses` | Respuestas invalidas |
-| `http_500/503/504` | Errores HTTP por codigo |
+| `http_req_duration` | Response time |
+| `http_req_failed` | Error rate |
+| `http_reqs` | Total requests |
+| `vus` | Active virtual users |
+| `bad_responses` | Invalid responses |
+| `http_500/503/504` | HTTP errors by status code |
 | `timeouts` | Timeouts |
-| `success_rate` | Tasa de exito |
+| `success_rate` | Success rate |
 
-## Estructura del Proyecto
+## Project Structure
 
 ```
 k6/
-├── src/
-│   ├── config/           # Configuracion y thresholds
-│   ├── builders/         # Constructores de payloads
-│   ├── metrics/          # Metricas personalizadas
-│   ├── checks/           # Validadores de respuestas
-│   ├── clients/          # Clientes HTTP
-│   ├── utils/            # Utilidades
-│   └── reports/          # Generador de PDFs
-│       ├── pdf-generator.js
-│       ├── k6-json-parser.js
-│       ├── metrics-calculator.js
-│       └── templates/
-│           ├── glossary.js        # Explicaciones de metricas
-│           ├── test-descriptions.js
-│           └── styles.js
-├── tests/
-│   ├── smoke/
-│   ├── load/
-│   ├── stress/
-│   ├── capacity/
-│   ├── spike/
-│   ├── soak/
-│   ├── size/
-│   ├── combined/
-│   └── traffic-monitoring/
-├── scripts/
-│   └── run-full-test.js   # Runner principal
-├── reports/
-│   ├── pdf/               # Reportes PDF generados
-│   └── json/              # Salida JSON de K6
-├── grafana/
-│   ├── dashboards/        # Dashboard de Grafana
-│   └── provisioning/      # Configuracion auto
-├── config/                # Configs por ambiente
-├── data/                  # Templates y fixtures
-├── docker-compose.yml     # Grafana + InfluxDB
-└── package.json
+|-- src/
+|   |-- config/           # Configuration and thresholds
+|   |-- builders/         # Payload builders
+|   |-- metrics/          # Custom metrics
+|   |-- checks/           # Response validators
+|   |-- clients/          # HTTP clients
+|   |-- utils/            # Utilities
+|   `-- reports/          # PDF generator
+|       |-- pdf-generator.js
+|       |-- k6-json-parser.js
+|       |-- metrics-calculator.js
+|       `-- templates/
+|           |-- glossary.js        # Metric explanations
+|           |-- test-descriptions.js
+|           `-- styles.js
+|-- tests/
+|   |-- smoke/
+|   |-- load/
+|   |-- stress/
+|   |-- capacity/
+|   |-- spike/
+|   |-- soak/
+|   |-- size/
+|   |-- combined/
+|   `-- traffic-monitoring/
+|-- scripts/
+|   `-- run-full-test.js   # Main runner
+|-- reports/
+|   |-- pdf/               # Generated PDF reports
+|   `-- json/              # k6 JSON output
+|-- grafana/
+|   |-- dashboards/        # Grafana dashboards
+|   `-- provisioning/      # Auto provisioning
+|-- config/                # Environment configs
+|-- data/                  # Templates and fixtures
+|-- docker-compose.yml     # Grafana + InfluxDB
+`-- package.json
 ```
 
-## Configuracion
+## Configuration
 
-### Variables de Entorno (.env)
+### Environment Variables (.env)
 
 ```bash
-# Ambiente por defecto
+# Default environment
 ENVIRONMENT=local
 
-# URLs por ambiente
+# URLs per environment
 LOCAL_BASE_URL=https://api.local.example.com
 DEV_BASE_URL=https://api.dev.example.com
 STAGING_BASE_URL=https://api.staging.example.com
 
-# Thresholds personalizados
+# Custom thresholds
 SMOKE_THRESHOLD_P95_DURATION=2000
 LOAD_THRESHOLD_FAILED_RATE=0.05
 ```
 
-### Parametros de Test
+### Test Parameters
 
-Modificar en `.env` o pasar via linea de comandos:
+Modify in `.env` or pass via command line:
 
 ```bash
-# Ejemplo: aumentar VUs
+# Example: increase VUs
 k6 run -e MAX_VUS=500 tests/load/soap-load.test.js
 
-# Ejemplo: cambiar duracion soak
+# Example: change soak duration
 k6 run -e SOAK_DURATION=60m tests/soak/soap-soak.test.js
 ```
 
-## Glosario de Metricas
+## Metrics Glossary
 
 ### Percentiles (P50, P90, P95, P99)
-Indican que porcentaje de requests completaron en menos tiempo:
-- **P95 < 2s**: 95% de usuarios reciben respuesta en menos de 2 segundos
+Indicate what percentage of requests completed under a given time:
+- **P95 < 2s**: 95% of users receive a response in under 2 seconds
 
 ### RPS (Requests Per Second)
-Cantidad de solicitudes procesadas por segundo.
+Number of requests processed per second.
 
 ### Error Rate
-Porcentaje de solicitudes fallidas:
-- < 1%: Excelente
-- 1-5%: Aceptable
-- > 5%: Requiere investigacion
+Percentage of failed requests:
+- < 1%: Excellent
+- 1-5%: Acceptable
+- > 5%: Needs investigation
 
 ### Thresholds
-Limites predefinidos que determinan si el test PASA o FALLA.
+Predefined limits that determine whether the test PASSES or FAILS.
 
 ## Troubleshooting
 
-### Docker no inicia
+### Docker will not start
 ```bash
 docker-compose down
 docker-compose up -d
 ```
 
-### Grafana no muestra datos
+### Grafana shows no data
 ```bash
-npm run clean    # Limpia y recrea la base de datos
+npm run clean    # Clean and recreate the database
 ```
 
-### Test falla pero necesito el PDF
-El sistema genera el PDF aunque los thresholds fallen.
+### Test fails but I need the PDF
+The system generates the PDF even if thresholds fail.
 
-## Integracion CI/CD
+## CI/CD Integration
 
 ```yaml
-# Ejemplo GitHub Actions
+# Example GitHub Actions
 - name: Run Performance Tests
   run: |
     npm install
     npm run smoke -- --skip-grafana --skip-open
 ```
 
-## Licencia
+## License
 
-Uso interno.
+Internal use.
 
-## Soporte
+## Support
 
-Contactar al equipo de Performance Engineering.
+Contact the Performance Engineering team.

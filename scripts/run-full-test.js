@@ -2,7 +2,7 @@
 
 /**
  * Full Test Runner
- * Executes K6 test, generates PDF report, and opens results
+ * Executes k6 test, generates PDF report, and opens results
  * Continues even if thresholds fail
  */
 
@@ -21,50 +21,50 @@ const validEnvironments = ['local', 'dev', 'staging', 'prod'];
 // Show help
 if (!testType || testType === '--help' || testType === '-h') {
   console.log(`
-╔══════════════════════════════════════════════════════════════╗
-║           K6 PERFORMANCE TESTING FRAMEWORK                   ║
-╚══════════════════════════════════════════════════════════════╝
+===============================================
+K6 PERFORMANCE TESTING FRAMEWORK
+===============================================
 
-TESTS (ejecutan en LOCAL por defecto):
-  npm run smoke      Verifica funcionalidad basica (15s)
-  npm run load       Carga normal sostenida (~9min)
-  npm run stress     Encuentra punto de ruptura (~7min)
-  npm run capacity   Capacidad maxima saludable (~7min)
-  npm run spike      Rafagas de trafico (~5min)
-  npm run soak       Estabilidad largo plazo (30min+)
-  npm run size       Limites de payload
-  npm run combined   SOAP + Traffic en paralelo
+TESTS (default environment: LOCAL):
+  npm run smoke      Basic functionality check (15s)
+  npm run load       Sustained normal load (~9min)
+  npm run stress     Find breaking point (~7min)
+  npm run capacity   Healthy max capacity (~7min)
+  npm run spike      Traffic bursts (~5min)
+  npm run soak       Long-term stability (30min+)
+  npm run size       Payload limits
+  npm run combined   SOAP + Traffic in parallel
 
-POR ENTORNO (dev, staging, prod):
-  npm run smoke:dev        Smoke en DEV
-  npm run smoke:staging    Smoke en STAGING
-  npm run smoke:prod       Smoke en PROD
-  npm run load:dev         Load en DEV
-  npm run load:staging     Load en STAGING
-  npm run stress:dev       Stress en DEV
-  (igual para capacity, spike, soak, size...)
+BY ENVIRONMENT (dev, staging, prod):
+  npm run smoke:dev        Smoke on DEV
+  npm run smoke:staging    Smoke on STAGING
+  npm run smoke:prod       Smoke on PROD
+  npm run load:dev         Load on DEV
+  npm run load:staging     Load on STAGING
+  npm run stress:dev       Stress on DEV
+  (same for capacity, spike, soak, size...)
 
 TRAFFIC MONITORING:
   npm run traffic:smoke
   npm run traffic:load
   npm run traffic:stress
 
-UTILIDADES:
-  npm start          Inicia Grafana y abre dashboard
-  npm stop           Detiene Grafana
-  npm run clean      Limpia datos de Grafana
+UTILITIES:
+  npm start          Start Grafana and open dashboard
+  npm stop           Stop Grafana
+  npm run clean      Clean Grafana data
 
-CADA TEST HACE:
-  1. Inicia Grafana/InfluxDB
-  2. Limpia datos anteriores
-  3. Abre dashboard en navegador
-  4. Ejecuta test K6
-  5. Captura graficos de Grafana
-  6. Genera PDF con reporte
-  7. Abre carpeta de reportes
+EACH TEST DOES:
+  1. Start Grafana/InfluxDB
+  2. Clean previous data
+  3. Open the dashboard in a browser
+  4. Run the k6 test
+  5. Capture Grafana charts
+  6. Generate a PDF report
+  7. Open the reports folder
 
-REPORTES PDF: reports/pdf/
-GRAFANA:      http://localhost:3000
+PDF REPORTS: reports/pdf/
+GRAFANA:     http://localhost:3000
 `);
   process.exit(0);
 }
@@ -87,40 +87,40 @@ const testConfigs = {
 const testFile = testConfigs[testType];
 
 if (!testFile) {
-  console.error(`Test desconocido: ${testType}`);
-  console.error(`Disponibles: ${Object.keys(testConfigs).join(', ')}`);
-  console.error(`\nUsa: npm run help`);
+  console.error(`Unknown test type: ${testType}`);
+  console.error(`Available: ${Object.keys(testConfigs).join(', ')}`);
+  console.error(`\nUse: npm run help`);
   process.exit(1);
 }
 
 if (!validEnvironments.includes(environment)) {
-  console.error(`Entorno desconocido: ${environment}`);
-  console.error(`Disponibles: ${validEnvironments.join(', ')}`);
+  console.error(`Unknown environment: ${environment}`);
+  console.error(`Available: ${validEnvironments.join(', ')}`);
   process.exit(1);
 }
 
 const envLabel = environment.toUpperCase();
 console.log(`
-╔══════════════════════════════════════════════════════════════╗
-║           K6 FULL TEST RUNNER                                ║
-╠══════════════════════════════════════════════════════════════╣
-║  Test Type:   ${testType.padEnd(46)}║
-║  Environment: ${envLabel.padEnd(46)}║
-║  Test File:   ${testFile.padEnd(46)}║
-╚══════════════════════════════════════════════════════════════╝
+===============================================
+K6 FULL TEST RUNNER
+===============================================
+Test Type:   ${testType}
+Environment: ${envLabel}
+Test File:   ${testFile}
+===============================================
 `);
 
 // Step 1: Start Grafana (if not skipped)
 if (!skipGrafana) {
-  console.log('📊 [1/7] Starting Grafana & InfluxDB...');
+  console.log('[1/7] Starting Grafana & InfluxDB...');
   try {
     execSync('docker-compose up -d', { stdio: 'inherit' });
   } catch (e) {
-    console.log('⚠️  Grafana may already be running or Docker is not available');
+    console.log('WARN: Grafana may already be running or Docker is not available');
   }
 
   // Wait a moment for InfluxDB to be ready
-  console.log('🧹 [2/7] Cleaning previous test data...');
+  console.log('[2/7] Cleaning previous test data...');
   try {
     // Small delay to ensure InfluxDB is ready
     execSync('timeout /t 2 /nobreak >nul 2>&1 || sleep 2', { stdio: 'ignore' });
@@ -131,14 +131,14 @@ if (!skipGrafana) {
   }
 
   // Open Grafana dashboard
-  console.log('🌐 [3/7] Opening Grafana dashboard...');
+  console.log('[3/7] Opening Grafana dashboard...');
   try {
     execSync('start http://localhost:3000/d/k6-performance/k6-performance-dashboard', { stdio: 'inherit' });
   } catch (e) {
     // Ignore errors
   }
 } else {
-  console.log('⏭️  Skipping Grafana (--skip-grafana)');
+  console.log('Skipping Grafana (--skip-grafana)');
 }
 
 // Ensure output directories exist
@@ -152,9 +152,9 @@ if (!fs.existsSync(pdfDir)) {
   fs.mkdirSync(pdfDir, { recursive: true });
 }
 
-// Step 4: Run K6 test
-console.log(`\n🚀 [4/7] Running ${testType} test on ${envLabel}...`);
-console.log('─'.repeat(60));
+// Step 4: Run k6 test
+console.log(`\n[4/7] Running ${testType} test on ${envLabel}...`);
+console.log('-'.repeat(60));
 
 const jsonOutput = path.join(jsonDir, `${testType}-${environment}-latest.json`);
 const k6Command = `k6 run -e ENVIRONMENT=${environment} --out json=${jsonOutput} --out influxdb=http://localhost:8086/k6 ${testFile}`;
@@ -162,16 +162,16 @@ const k6Command = `k6 run -e ENVIRONMENT=${environment} --out json=${jsonOutput}
 let testPassed = true;
 try {
   execSync(k6Command, { stdio: 'inherit' });
-  console.log('\n✅ Test completed - All thresholds passed!');
+  console.log('\nOK: Test completed - All thresholds passed');
 } catch (e) {
   testPassed = false;
-  console.log('\n⚠️  Test completed - Some thresholds may have failed');
-  console.log('   (This is normal for stress/capacity tests)');
+  console.log('\nWARN: Test completed - Some thresholds may have failed');
+  console.log('      (This is normal for stress/capacity tests)');
 }
 
 // Step 5: Capture Grafana charts
-console.log('\n📸 [5/7] Capturing Grafana charts...');
-console.log('─'.repeat(60));
+console.log('\n[5/7] Capturing Grafana charts...');
+console.log('-'.repeat(60));
 
 let grafanaImages = null;
 const chartsDir = path.join(__dirname, '..', 'reports', 'charts');
@@ -207,8 +207,8 @@ async function captureGrafanaCharts() {
 }
 
 // Step 6: Generate PDF report
-console.log('\n📄 [6/7] Generating PDF report...');
-console.log('─'.repeat(60));
+console.log('\n[6/7] Generating PDF report...');
+console.log('-'.repeat(60));
 
 async function generateReport() {
   // First capture charts
@@ -231,11 +231,11 @@ async function generateReport() {
 
 try {
   generateReport().then((outputPath) => {
-    console.log(`\n✅ PDF generated: ${path.basename(outputPath)}`);
+    console.log(`\nOK: PDF generated: ${path.basename(outputPath)}`);
 
     // Open PDF folder (Step 7)
     if (!skipOpen) {
-      console.log('\n📂 [7/7] Opening reports folder...');
+      console.log('\n[7/7] Opening reports folder...');
       try {
         execSync(`start "" "${pdfDir}"`, { stdio: 'inherit' });
       } catch (e) {
@@ -245,19 +245,18 @@ try {
 
     // Final summary
     console.log(`
-╔══════════════════════════════════════════════════════════════╗
-║                    TEST COMPLETE                             ║
-╠══════════════════════════════════════════════════════════════╣
-║  Test Result: ${(testPassed ? '✅ PASSED' : '⚠️  THRESHOLDS EXCEEDED').padEnd(46)}║
-║  PDF Report:  ${path.basename(outputPath).padEnd(46)}║
-║  Location:    reports/pdf/                                   ║
-╠══════════════════════════════════════════════════════════════╣
-║  📊 Grafana: http://localhost:3000                           ║
-╚══════════════════════════════════════════════════════════════╝
+===============================================
+TEST COMPLETE
+===============================================
+Result:     ${testPassed ? 'PASSED' : 'THRESHOLDS EXCEEDED'}
+PDF Report: ${path.basename(outputPath)}
+Location:   reports/pdf/
+Grafana:    http://localhost:3000
+===============================================
 `);
   }).catch((err) => {
-    console.error('❌ Error generating PDF:', err.message);
+    console.error('Error generating PDF:', err.message);
   });
 } catch (e) {
-  console.error('❌ Error generating PDF:', e.message);
+  console.error('Error generating PDF:', e.message);
 }

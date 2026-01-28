@@ -1,5 +1,5 @@
 // Jenkinsfile - k6 Performance Testing Framework
-// Pipeline para ejecutar pruebas de rendimiento con k6
+// Pipeline to run k6 performance tests
 
 pipeline {
     agent any
@@ -8,34 +8,34 @@ pipeline {
         choice(
             name: 'TEST_TYPE',
             choices: ['smoke', 'load', 'stress', 'spike', 'soak', 'size'],
-            description: 'Tipo de test a ejecutar'
+            description: 'Test type to run'
         )
         choice(
             name: 'ENVIRONMENT',
             choices: ['local', 'dev', 'staging', 'prod'],
-            description: 'Entorno donde ejecutar el test'
+            description: 'Environment where the test runs'
         )
         string(
             name: 'MAX_VUS',
             defaultValue: '200',
-            description: 'Número máximo de usuarios virtuales (para load/stress)'
+            description: 'Maximum number of virtual users (for load/stress)'
         )
         string(
             name: 'ACTIVITIES',
             defaultValue: '1',
-            description: 'Número de actividades en el payload'
+            description: 'Number of activities in the payload'
         )
         string(
             name: 'SIZE_MB',
             defaultValue: '0',
-            description: 'Tamaño del payload en MB (0 = dinámico)'
+            description: 'Payload size in MB (0 = dynamic)'
         )
     }
 
     environment {
-        // Configurar k6 si no está en PATH
+        // Configure k6 if it is not in PATH
         K6_BIN = 'k6'
-        // Directorio de reportes
+        // Reports directory
         REPORTS_DIR = 'reports'
     }
 
@@ -50,10 +50,10 @@ pipeline {
         stage('Verify Installation') {
             steps {
                 script {
-                    echo "Verificando instalación de k6..."
+                    echo "Verifying k6 installation..."
                     sh """
                         ${K6_BIN} version || {
-                            echo "ERROR: k6 no está instalado"
+                            echo "ERROR: k6 is not installed"
                             exit 1
                         }
                     """
@@ -63,17 +63,17 @@ pipeline {
 
         stage('Prepare') {
             steps {
-                echo "Preparando entorno de test..."
+                echo "Preparing test environment..."
                 sh """
-                    # Limpiar reportes antiguos
+                    # Clean old reports
                     rm -rf ${REPORTS_DIR}/json/* ${REPORTS_DIR}/allure-results/* || true
 
-                    # Verificar estructura del proyecto
-                    test -d src/ || { echo "ERROR: Directorio src/ no encontrado"; exit 1; }
-                    test -d tests/ || { echo "ERROR: Directorio tests/ no encontrado"; exit 1; }
-                    test -f .env || { echo "ERROR: Archivo .env no encontrado"; exit 1; }
+                    # Verify project structure
+                    test -d src/ || { echo "ERROR: src/ directory not found"; exit 1; }
+                    test -d tests/ || { echo "ERROR: tests/ directory not found"; exit 1; }
+                    test -f .env || { echo "ERROR: .env file not found"; exit 1; }
 
-                    echo "✓ Estructura del proyecto verificada"
+                    echo "OK: Project structure verified"
                 """
             }
         }
@@ -81,7 +81,7 @@ pipeline {
         stage('Run Test') {
             steps {
                 script {
-                    echo "Ejecutando test ${params.TEST_TYPE} en entorno ${params.ENVIRONMENT}..."
+                    echo "Running test ${params.TEST_TYPE} in ${params.ENVIRONMENT} environment..."
 
                     def testFile = "tests/${params.TEST_TYPE}/soap-${params.TEST_TYPE}.test.js"
                     def reportFile = "${REPORTS_DIR}/json/${params.TEST_TYPE}-${params.ENVIRONMENT}-${env.BUILD_NUMBER}.json"
@@ -95,15 +95,15 @@ pipeline {
                             --out json=${reportFile} \
                             --out experimental-json-report=${REPORTS_DIR}/allure-results \
                             ${testFile} || {
-                                EXIT_CODE=\$?
-                                echo "Test completado con código de salida: \$EXIT_CODE"
-                                if [ \$EXIT_CODE -eq 99 ]; then
-                                    echo "⚠️  Test ejecutado pero thresholds no cumplidos"
-                                elif [ \$EXIT_CODE -eq 0 ]; then
-                                    echo "✓ Test completado exitosamente"
+                                EXIT_CODE=$?
+                                echo "Test completed with exit code: $EXIT_CODE"
+                                if [ $EXIT_CODE -eq 99 ]; then
+                                    echo "WARN: Test ran but thresholds were not met"
+                                elif [ $EXIT_CODE -eq 0 ]; then
+                                    echo "OK: Test completed successfully"
                                 else
-                                    echo "✗ Error en la ejecución del test"
-                                    exit \$EXIT_CODE
+                                    echo "ERROR: Test execution failed"
+                                    exit $EXIT_CODE
                                 fi
                             }
                     """
@@ -113,7 +113,7 @@ pipeline {
 
         stage('Generate Reports') {
             steps {
-                echo "Generando reportes Allure..."
+                echo "Generating Allure reports..."
                 sh """
                     npx allure generate ${REPORTS_DIR}/allure-results --clean -o ${REPORTS_DIR}/allure-report || true
                 """
@@ -122,14 +122,14 @@ pipeline {
 
         stage('Archive Results') {
             steps {
-                echo "Archivando resultados..."
+                echo "Archiving results..."
 
-                // Archivar reportes JSON
+                // Archive JSON reports
                 archiveArtifacts artifacts: "${REPORTS_DIR}/json/*.json",
                                  allowEmptyArchive: true,
                                  fingerprint: true
 
-                // Publicar reporte Allure
+                // Publish Allure report
                 allure([
                     includeProperties: false,
                     jdk: '',
@@ -143,21 +143,21 @@ pipeline {
 
     post {
         always {
-            echo "Limpiando workspace..."
-            // Mantener reportes pero limpiar temporales
+            echo "Cleaning workspace..."
+            // Keep reports but clean temp files
             sh "find . -name '*.tmp' -delete || true"
         }
 
         success {
-            echo "✓ Pipeline completado exitosamente"
+            echo "OK: Pipeline completed successfully"
         }
 
         failure {
-            echo "✗ Pipeline falló"
+            echo "ERROR: Pipeline failed"
         }
 
         unstable {
-            echo "⚠️ Pipeline inestable - Thresholds no cumplidos"
+            echo "WARN: Pipeline unstable - thresholds not met"
         }
     }
 }

@@ -24,10 +24,10 @@ export default function(data) {
     client.authenticate();
   }
 
-  // Llamada al endpoint de Traffic Monitoring
+  // Traffic Monitoring endpoint call
   const response = client.getDataDomain();
 
-  // Si recibimos 401, re-autenticamos y reintentamos
+  // If we receive 401, re-authenticate and retry
   if (client.handleUnauthorized(response)) {
     client.getDataDomain();
   }
@@ -36,5 +36,5 @@ export default function(data) {
 }
 
 export function teardown(data) {
-  console.log('[Traffic Monitoring Smoke Test] Finalizado');
+  console.log('[Traffic Monitoring Smoke Test] Completed');
 }

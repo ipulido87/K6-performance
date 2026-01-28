@@ -3,7 +3,7 @@ import { check } from 'k6';
 import { getOAuth2Token, createAuthHeaders } from '../utils/oauth2.js';
 
 /**
- * Cliente para Traffic Monitoring API
+ * Traffic Monitoring API client
  */
 export class TrafficMonitoringClient {
   constructor(
@@ -26,7 +26,7 @@ export class TrafficMonitoringClient {
   }
 
   /**
-   * Autentica y obtiene el token de acceso
+   * Authenticate and get the access token
    */
   authenticate() {
     this.token = getOAuth2Token(
@@ -41,8 +41,8 @@ export class TrafficMonitoringClient {
   }
 
   /**
-   * Obtiene los datos del dominio de Traffic Monitoring
-   * @returns {object} Respuesta HTTP de k6
+   * Get Traffic Monitoring domain data
+   * @returns {object} k6 HTTP response
    */
   getDataDomain() {
     if (!this.token) {
@@ -63,20 +63,20 @@ export class TrafficMonitoringClient {
 
     check(response, {
       'Traffic Monitoring: status 200': (r) => r.status === 200,
-      'Traffic Monitoring: tiene respuesta': (r) => r.body && r.body.length > 0,
+      'Traffic Monitoring: has response': (r) => r.body && r.body.length > 0,
     });
 
     return response;
   }
 
   /**
-   * Re-autentica si el token expiró (status 401)
-   * @param {object} response - Respuesta HTTP
-   * @returns {boolean} true si se re-autenticó
+   * Re-authenticate if the token expired (status 401)
+   * @param {object} response - HTTP response
+   * @returns {boolean} true if re-authenticated
    */
   handleUnauthorized(response) {
     if (response.status === 401) {
-      console.log('Token expirado, re-autenticando...');
+      console.log('Token expired, re-authenticating...');
       this.authenticate();
       return true;
     }
@@ -85,8 +85,8 @@ export class TrafficMonitoringClient {
 }
 
 /**
- * Factory para crear cliente de Traffic Monitoring según el ambiente
- * @param {object} env - Configuración del ambiente
+ * Factory to create a Traffic Monitoring client for an environment
+ * @param {object} env - Environment configuration
  * @returns {TrafficMonitoringClient}
  */
 export function createTrafficMonitoringClient(env) {

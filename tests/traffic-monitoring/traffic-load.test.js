@@ -14,7 +14,7 @@ export const options = {
       maxVUs: getEnvNumber('LOAD_MAX_VUS', 200),
       stages: [
         { target: getEnvNumber('LOAD_TARGET_RPS', 10), duration: '3m' },  // Ramp-up
-        { target: getEnvNumber('LOAD_TARGET_RPS', 10), duration: '5m' },  // Mantener carga
+        { target: getEnvNumber('LOAD_TARGET_RPS', 10), duration: '5m' },  // Hold load
         { target: 0, duration: '1m' },  
       ],
     },
@@ -27,7 +27,7 @@ const environment = getEnvironment(ENV);
 const client = createTrafficMonitoringClient(environment);
 
 export function setup() {
-  console.log(`[Traffic Monitoring Load Test] Ambiente: ${ENV}`);
+  console.log(`[Traffic Monitoring Load Test] Environment: ${ENV}`);
   console.log(`[Traffic Monitoring] Target RPS: ${getEnvNumber('LOAD_TARGET_RPS', 10)}`);
   console.log(`[Traffic Monitoring] Max VUs: ${getEnvNumber('LOAD_MAX_VUS', 200)}`);
 
@@ -36,15 +36,15 @@ export function setup() {
 
 export default function() {
 
-  // Autenticacion inicial
+  // Initial authentication
   if (!client.token) {
     client.authenticate();
   }
 
-  // Llamada al endpoint
+  // Endpoint call
   const response = client.getDataDomain();
 
-  // Manejo de re-autenticacion
+  // Re-auth handling
   if (client.handleUnauthorized(response)) {
     client.getDataDomain();
   }
@@ -53,5 +53,5 @@ export default function() {
 }
 
 export function teardown(data) {
-  console.log('[Traffic Monitoring Load Test] Finalizado');
+  console.log('[Traffic Monitoring Load Test] Completed');
 }

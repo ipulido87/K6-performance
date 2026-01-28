@@ -53,10 +53,10 @@
             </ram:OwnerFLUXParty>
           </ram:RelatedFLUXReportDocument>
 
-          <!-- BLOQUE REPETIBLE (se inyecta desde k6) -->
+          <!-- REPEATABLE BLOCK (injected by k6) -->
           {{ACTIVITIES_BLOCK}}
 
-          <!-- El resto del XML se queda tal cual -->
+          <!-- The rest of the XML stays as-is -->
           <ram:SpecifiedVesselTransportMeans>
             <ram:ID schemeID="CFR">CYP123452222</ram:ID>
             <ram:Name>GOLF</ram:Name>

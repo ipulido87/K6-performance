@@ -17,12 +17,12 @@ const ACTIVITIES = validateEnvNumber(__ENV.ACTIVITIES, 1, 1, 100);
 const soapBuilder = createSoapBuilder(config.getAll());
 const metrics = createMetricsManager();
 
-// Cliente para Traffic Monitoring (se inicializa en setup)
+// Traffic Monitoring client (initialized in setup)
 let trafficClient = null;
 
 export const options = {
   scenarios: {
-    // Escenario 1: SOAP Backend
+    // Scenario 1: SOAP Backend
     soap_backend: {
       executor: "ramping-vus",
       startVUs: 0,
@@ -35,7 +35,7 @@ export const options = {
       exec: "soapTest",
       tags: { scenario: "soap" },
     },
-    // Escenario 2: Traffic Monitoring (REST/Frontend)
+    // Scenario 2: Traffic Monitoring (REST/Frontend)
     traffic_frontend: {
       executor: "ramping-vus",
       startVUs: 0,
@@ -50,10 +50,10 @@ export const options = {
     },
   },
   thresholds: {
-    // Thresholds globales
+    // Global thresholds
     http_req_failed: ["rate<0.30"],
 
-    // Thresholds por escenario
+    // Scenario thresholds
     "http_req_duration{scenario:soap}": ["p(95)<30000"],
     "http_req_duration{scenario:traffic}": ["p(95)<5000"],
     "http_req_failed{scenario:soap}": ["rate<0.50"],
@@ -66,12 +66,12 @@ export function setup() {
     environment: config.environment,
     soapUrl: config.get("url"),
     trafficUrl: config.get("trafficUrl"),
-    soapStages: "5→10→15 VUs",
-    trafficStages: "3→5→8 VUs",
+    soapStages: "5->10->15 VUs",
+    trafficStages: "3->5->8 VUs",
     duration: "~6 minutes",
   });
 
-  // Obtener token de autenticación para Traffic Monitoring
+  // Get authentication token for Traffic Monitoring
   const authUrl = config.get("authUrl");
   const clientId = config.get("clientId");
   const clientSecret = config.get("clientSecret");
@@ -109,7 +109,7 @@ export function setup() {
 }
 
 // ============================================
-// Escenario 1: SOAP Backend Test
+// Scenario 1: SOAP Backend Test
 // ============================================
 export function soapTest() {
   const body = soapBuilder.buildWithActivities(ACTIVITIES);
@@ -140,7 +140,7 @@ export function soapTest() {
 }
 
 // ============================================
-// Escenario 2: Traffic Monitoring Test
+// Scenario 2: Traffic Monitoring Test
 // ============================================
 export function trafficTest(data) {
   const trafficUrl = config.get("trafficUrl");

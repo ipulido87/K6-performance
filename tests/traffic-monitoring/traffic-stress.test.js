@@ -31,7 +31,7 @@ const ENV = __ENV.ENVIRONMENT || "local";
 const environment = getEnvironment(ENV);
 
 export function setup() {
-  console.log(`[Traffic Monitoring Stress Test] Ambiente: ${ENV}`);
+  console.log(`[Traffic Monitoring Stress Test] Environment: ${ENV}`);
   console.log(`[Traffic Monitoring] Max VUs: ${getEnvNumber('STRESS_MAX_VUS', 300)}`);
 
   return { environment };
@@ -40,15 +40,15 @@ export function setup() {
 export default function(data) {
   const client = createTrafficMonitoringClient(data.environment);
 
-  // Autenticación inicial
+  // Initial authentication
   if (!client.token) {
     client.authenticate();
   }
 
-  // Llamada al endpoint
+  // Endpoint call
   const response = client.getDataDomain();
 
-  // Manejo de re-autenticación
+  // Re-auth handling
   if (client.handleUnauthorized(response)) {
     client.getDataDomain();
   }
@@ -57,5 +57,5 @@ export default function(data) {
 }
 
 export function teardown(data) {
-  console.log('[Traffic Monitoring Stress Test] Finalizado');
+  console.log('[Traffic Monitoring Stress Test] Completed');
 }
