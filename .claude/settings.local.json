@@ -7,7 +7,9 @@
       "Bash(npm run allure:smoke:*)",
       "Bash(npm run smoke:*)",
       "Bash(nvm use:*)",
-      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: add environment variable parameterization and traffic monitoring tests\n\n- Replace JSON config files with .env-based configuration using env-loader.js\n- Add SOAP client for traffic monitoring service\n- Add OAuth2 utility for token management\n- Add traffic monitoring smoke and stress tests\n- Update Jenkinsfile with Allure report generation\n- Add parameterization documentation \\(PARAMETRIZACION.md\\)\n- Update all existing tests to use new environment configuration\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: add environment variable parameterization and traffic monitoring tests\n\n- Replace JSON config files with .env-based configuration using env-loader.js\n- Add SOAP client for traffic monitoring service\n- Add OAuth2 utility for token management\n- Add traffic monitoring smoke and stress tests\n- Update Jenkinsfile with Allure report generation\n- Add parameterization documentation \\(PARAMETRIZACION.md\\)\n- Update all existing tests to use new environment configuration\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(node scripts/generate-pdf-report.js:*)",
+      "Bash(npm run help:*)"
     ]
   }
 }

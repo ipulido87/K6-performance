@@ -1,323 +1,269 @@
-# k6 Performance Testing Framework
+# K6 Performance Testing Framework
 
-Professional-grade performance testing framework for SOAP web services using k6.
+Framework profesional de testing de rendimiento para servicios web SOAP usando K6, con integración de Grafana y generación automática de reportes PDF.
 
-## Features
+## Requisitos
 
-- **Modular Architecture**: Reusable components for builders, metrics, checks, and utilities
-- **Multi-Environment Support**: Easy configuration for local, dev, staging, and production
-- **Comprehensive Test Types**: Smoke, Load, Stress, Spike, Soak, and Size tests
-- **Advanced Metrics**: Custom metrics with detailed error categorization
-- **Structured Logging**: JSON-formatted logs for integration with monitoring tools
-- **Type-Safe Configuration**: Validation and type checking for all parameters
+- [K6](https://k6.io/docs/getting-started/installation/)
+- [Docker](https://www.docker.com/) (para Grafana + InfluxDB)
+- [Node.js](https://nodejs.org/) >= 14.0.0
 
-## Project Structure
-
-```
-k6/
-├── src/                      # Framework source code
-│   ├── config/              # Configuration management
-│   ├── utils/               # Utility functions
-│   ├── builders/            # Payload builders
-│   ├── metrics/             # Custom metrics
-│   └── checks/              # Response validators
-├── tests/                   # Test scripts
-│   ├── smoke/              # Smoke tests
-│   ├── load/               # Load tests
-│   ├── stress/             # Stress tests
-│   ├── spike/              # Spike tests
-│   ├── soak/               # Soak tests
-│   └── size/               # Size tests
-├── config/                  # Environment configurations
-├── data/                    # Test data and templates
-└── reports/                 # Test reports output
-```
-
-## Quick Start
-
-### Prerequisites
-
-- [k6](https://k6.io/docs/getting-started/installation/) installed
-- Node.js (optional, for npm scripts)
-
-### Installation
+## Instalacion
 
 ```bash
 git clone <repository>
 cd k6
+npm install
 ```
 
-### Running Tests
+## Uso Rapido
 
-#### Smoke Test (Basic Functionality)
-```bash
-k6 run tests/smoke/soap-smoke.test.js
-```
-
-#### Load Test (Sustained Load)
-```bash
-k6 run tests/load/soap-load.test.js
-```
-
-#### Stress Test (Find Breaking Point)
-```bash
-k6 run tests/stress/soap-stress.test.js
-```
-
-#### Spike Test (Sudden Traffic Burst)
-```bash
-k6 run tests/spike/soap-spike.test.js
-```
-
-#### Soak Test (Long Duration Stability)
-```bash
-k6 run tests/soak/soap-soak.test.js
-```
-
-#### Size Test (Maximum Payload Size)
-```bash
-k6 run tests/size/soap-size.test.js
-```
-
-## Configuration
-
-### Environment Selection
-
-Use the `ENVIRONMENT` variable to select configuration:
+Cada comando ejecuta automaticamente:
+1. Inicia Grafana + InfluxDB
+2. Limpia datos anteriores
+3. Abre dashboard en navegador
+4. Ejecuta el test de K6
+5. Genera reporte PDF
+6. Abre carpeta de reportes
 
 ```bash
-k6 run -e ENVIRONMENT=dev tests/load/soap-load.test.js
-k6 run -e ENVIRONMENT=staging tests/load/soap-load.test.js
-k6 run -e ENVIRONMENT=prod tests/load/soap-load.test.js
+npm run smoke      # Test de humo (15s)
+npm run load       # Test de carga (~9min)
+npm run stress     # Test de estres (~7min)
+npm run capacity   # Test de capacidad (~7min)
+npm run spike      # Test de picos (~5min)
+npm run soak       # Test de estabilidad (30min+)
+npm run size       # Test de payload
+npm run combined   # SOAP + Traffic en paralelo
 ```
 
-### Environment Files
-
-Edit configuration files in `config/` directory:
-- `config/local.json` - Local development
-- `config/dev.json` - Development environment
-- `config/staging.json` - Staging environment
-- `config/prod.json` - Production environment
-
-### Test Parameters
-
-Each test accepts various environment variables for customization:
-
-#### Common Parameters
+### Por Entorno (dev, staging, prod)
 
 ```bash
-# Activities count
-k6 run -e ACTIVITIES=5 tests/load/soap-load.test.js
+# Smoke
+npm run smoke:dev
+npm run smoke:staging
+npm run smoke:prod
 
-# Target payload size
-k6 run -e SIZE_MB=10 tests/load/soap-load.test.js
+# Load
+npm run load:dev
+npm run load:staging
+npm run load:prod
 
-# Virtual Users
-k6 run -e PRE_VUS=50 -e MAX_VUS=300 tests/load/soap-load.test.js
+# Stress
+npm run stress:dev
+npm run stress:staging
+npm run stress:prod
 
-# Logging frequency
-k6 run -e LOG_EVERY_BAD=100 tests/load/soap-load.test.js
+# Capacity, Spike, Soak...
+npm run capacity:dev
+npm run spike:staging
+npm run soak:dev
 ```
 
-#### Load Test Parameters
+### Utilidades
 
 ```bash
-k6 run -e PRE_VUS=30 -e MAX_VUS=200 tests/load/soap-load.test.js
+npm start          # Solo inicia Grafana y abre dashboard
+npm stop           # Detiene Grafana
+npm run clean      # Limpia datos de Grafana
+npm run help       # Muestra ayuda
 ```
 
-#### Stress Test Parameters
+## Tipos de Test
+
+### Smoke Test
+- **Objetivo**: Verificar funcionalidad basica
+- **Duracion**: 15 segundos
+- **Carga**: 1 VU
+- **Cuando usarlo**: Antes de otros tests, post-deployment, CI/CD
+
+### Load Test
+- **Objetivo**: Evaluar rendimiento bajo carga normal
+- **Duracion**: ~9 minutos
+- **Patron**: Rampa gradual hasta carga objetivo
+- **Cuando usarlo**: Establecer baseline, verificar SLAs
+
+### Stress Test
+- **Objetivo**: Encontrar punto de ruptura
+- **Duracion**: ~7 minutos
+- **Patron**: Rampa agresiva hasta fallo
+- **Cuando usarlo**: Planificacion de capacidad, encontrar limites
+
+### Capacity Test
+- **Objetivo**: Maxima carga sostenible dentro de SLA
+- **Duracion**: ~7 minutos
+- **Patron**: Incremento gradual con validacion de thresholds
+- **Cuando usarlo**: Definir limites operativos
+
+### Spike Test
+- **Objetivo**: Comportamiento ante picos de trafico
+- **Duracion**: ~5 minutos
+- **Patron**: Subida rapida, pico, bajada rapida
+- **Cuando usarlo**: Probar auto-scaling, resiliencia
+
+### Soak Test
+- **Objetivo**: Estabilidad a largo plazo
+- **Duracion**: 30+ minutos
+- **Patron**: Carga constante prolongada
+- **Cuando usarlo**: Detectar memory leaks, degradacion
+
+### Size Test
+- **Objetivo**: Encontrar limite de payload
+- **Patron**: Incremento progresivo de tamano
+- **Cuando usarlo**: Definir limites de API
+
+## Reportes PDF
+
+Los reportes se generan automaticamente en `reports/pdf/` e incluyen:
+
+- **Executive Summary**: Estado general, metricas clave, health score
+- **Metrics Glossary**: Explicacion de P95, P99, RPS, Error Rate, etc.
+- **Test Description**: Que hace el test y como interpretar resultados
+- **Detailed Results**: Tablas con tiempos de respuesta, errores
+- **Interpretation**: Analisis automatico y recomendaciones
+- **Technical Details**: Configuracion y metadata
+
+## Grafana Dashboard
+
+Accede al dashboard en tiempo real:
+- **URL**: http://localhost:3000
+- **Dashboard**: K6 Performance Dashboard
+
+### Metricas Disponibles
+
+| Metrica | Descripcion |
+|---------|-------------|
+| `http_req_duration` | Tiempo de respuesta |
+| `http_req_failed` | Tasa de errores |
+| `http_reqs` | Total de requests |
+| `vus` | Virtual Users activos |
+| `bad_responses` | Respuestas invalidas |
+| `http_500/503/504` | Errores HTTP por codigo |
+| `timeouts` | Timeouts |
+| `success_rate` | Tasa de exito |
+
+## Estructura del Proyecto
+
+```
+k6/
+├── src/
+│   ├── config/           # Configuracion y thresholds
+│   ├── builders/         # Constructores de payloads
+│   ├── metrics/          # Metricas personalizadas
+│   ├── checks/           # Validadores de respuestas
+│   ├── clients/          # Clientes HTTP
+│   ├── utils/            # Utilidades
+│   └── reports/          # Generador de PDFs
+│       ├── pdf-generator.js
+│       ├── k6-json-parser.js
+│       ├── metrics-calculator.js
+│       └── templates/
+│           ├── glossary.js        # Explicaciones de metricas
+│           ├── test-descriptions.js
+│           └── styles.js
+├── tests/
+│   ├── smoke/
+│   ├── load/
+│   ├── stress/
+│   ├── capacity/
+│   ├── spike/
+│   ├── soak/
+│   ├── size/
+│   ├── combined/
+│   └── traffic-monitoring/
+├── scripts/
+│   └── run-full-test.js   # Runner principal
+├── reports/
+│   ├── pdf/               # Reportes PDF generados
+│   └── json/              # Salida JSON de K6
+├── grafana/
+│   ├── dashboards/        # Dashboard de Grafana
+│   └── provisioning/      # Configuracion auto
+├── config/                # Configs por ambiente
+├── data/                  # Templates y fixtures
+├── docker-compose.yml     # Grafana + InfluxDB
+└── package.json
+```
+
+## Configuracion
+
+### Variables de Entorno (.env)
 
 ```bash
-k6 run -e START_RPS=5 -e MAX_VUS=500 tests/stress/soap-stress.test.js
+# Ambiente por defecto
+ENVIRONMENT=local
+
+# URLs por ambiente
+LOCAL_BASE_URL=https://api.local.example.com
+DEV_BASE_URL=https://api.dev.example.com
+STAGING_BASE_URL=https://api.staging.example.com
+
+# Thresholds personalizados
+SMOKE_THRESHOLD_P95_DURATION=2000
+LOAD_THRESHOLD_FAILED_RATE=0.05
 ```
 
-#### Size Test Parameters
+### Parametros de Test
+
+Modificar en `.env` o pasar via linea de comandos:
 
 ```bash
-# Test from 0.5MB to 128MB (doubling)
-k6 run -e START_MB=0.5 -e MAX_MB=128 tests/size/soap-size.test.js
+# Ejemplo: aumentar VUs
+k6 run -e MAX_VUS=500 tests/load/soap-load.test.js
 
-# Test with incremental steps
-k6 run -e STEP_MODE=add -e ADD_MB=5 -e START_MB=1 -e MAX_MB=50 tests/size/soap-size.test.js
+# Ejemplo: cambiar duracion soak
+k6 run -e SOAK_DURATION=60m tests/soak/soap-soak.test.js
 ```
 
-#### Soak Test Parameters
+## Glosario de Metricas
 
-```bash
-# 1-hour soak test
-k6 run -e SOAK_DURATION=60m -e SOAK_VUS=20 tests/soak/soap-soak.test.js
-```
+### Percentiles (P50, P90, P95, P99)
+Indican que porcentaje de requests completaron en menos tiempo:
+- **P95 < 2s**: 95% de usuarios reciben respuesta en menos de 2 segundos
 
-## Test Types Explained
+### RPS (Requests Per Second)
+Cantidad de solicitudes procesadas por segundo.
 
-### 1. Smoke Test
-- **Purpose**: Verify basic functionality
-- **Duration**: 15 seconds
-- **Load**: Minimal (1 VU)
-- **Use When**: Before running larger tests, CI/CD pipeline
+### Error Rate
+Porcentaje de solicitudes fallidas:
+- < 1%: Excelente
+- 1-5%: Aceptable
+- > 5%: Requiere investigacion
 
-### 2. Load Test
-- **Purpose**: Test sustained load
-- **Duration**: ~9 minutes
-- **Pattern**: Gradual ramp-up
-- **Use When**: Understanding normal capacity
-
-### 3. Stress Test
-- **Purpose**: Find breaking point
-- **Duration**: ~7 minutes
-- **Pattern**: Aggressive ramp-up
-- **Use When**: Capacity planning, finding limits
-
-### 4. Spike Test
-- **Purpose**: Test sudden traffic spikes
-- **Duration**: ~5 minutes
-- **Pattern**: Rapid increase/decrease
-- **Use When**: Testing auto-scaling, burst capacity
-
-### 5. Soak Test
-- **Purpose**: Long-term stability
-- **Duration**: 30+ minutes
-- **Pattern**: Constant load
-- **Use When**: Finding memory leaks, resource exhaustion
-
-### 6. Size Test
-- **Purpose**: Find max payload size
-- **Duration**: Variable
-- **Pattern**: Sequential size increases
-- **Use When**: Understanding payload limits
-
-## Output and Reporting
-
-### Console Output
-
-All tests provide structured JSON logs:
-
-```json
-{
-  "timestamp": "2026-01-14T10:00:00.000Z",
-  "level": "INFO",
-  "message": "Starting load test",
-  "test": "load-test",
-  "environment": "dev"
-}
-```
-
-### Metrics
-
-Custom metrics tracked:
-- `bad_responses` - Failed request count
-- `http_500`, `http_503`, `http_504` - HTTP error counts
-- `rejected_semaphore` - Semaphore rejection count
-- `shortcircuit` - Circuit breaker count
-- `payload_bytes` - Request payload sizes
-- `success_rate` - Success rate percentage
-
-### Reports
-
-Generate HTML reports (requires k6-reporter):
-
-```bash
-k6 run --out json=reports/json/results.json tests/load/soap-load.test.js
-```
-
-## Advanced Usage
-
-### Custom Thresholds
-
-Thresholds are centralized in [src/config/thresholds.js](src/config/thresholds.js). Modify as needed:
-
-```javascript
-export const loadThresholds = {
-  http_req_failed: ["rate<0.10"],
-  http_req_duration: ["p(95)<10000"],
-};
-```
-
-### Custom Metrics
-
-Add new metrics in [src/metrics/custom-metrics.js](src/metrics/custom-metrics.js):
-
-```javascript
-export function createSoapMetrics() {
-  return {
-    // Add your custom metrics
-    myCustomMetric: new Counter("my_custom_metric"),
-  };
-}
-```
-
-### Extending Tests
-
-Create new test types by copying existing templates and modifying:
-
-1. Copy a test file from `tests/` directory
-2. Adjust test parameters and stages
-3. Update thresholds if needed
-4. Run and validate
-
-## CI/CD Integration
-
-### Jenkins
-
-El framework incluye un `Jenkinsfile` completo para integración con Jenkins.
-
-**Configuración rápida:**
-1. Crear Pipeline Job en Jenkins
-2. Apuntar al `Jenkinsfile` en el repositorio
-3. Ejecutar con parámetros
-
-**Documentación completa:** Ver [jenkins/README.md](jenkins/README.md)
-
-**Ejemplo de ejecución:**
-```groovy
-// Build with parameters
-TEST_TYPE=smoke
-ENVIRONMENT=dev
-MAX_VUS=200
-```
-
-## Best Practices
-
-1. **Always run smoke tests first** before larger test suites
-2. **Start with low VU counts** and gradually increase
-3. **Monitor server resources** during tests
-4. **Use appropriate test types** for specific scenarios
-5. **Run soak tests off-peak** to avoid production impact
-6. **Document test results** and trends over time
-7. **Set realistic thresholds** based on SLAs
+### Thresholds
+Limites predefinidos que determinan si el test PASA o FALLA.
 
 ## Troubleshooting
 
-### Common Issues
+### Docker no inicia
+```bash
+docker-compose down
+docker-compose up -d
+```
 
-**Test fails immediately**
-- Check environment configuration in `config/` files
-- Verify service URL is accessible
-- Run smoke test first
+### Grafana no muestra datos
+```bash
+npm run clean    # Limpia y recrea la base de datos
+```
 
-**High error rates**
-- Reduce VU count or arrival rate
-- Check service logs for errors
-- Verify payload sizes are within limits
+### Test falla pero necesito el PDF
+El sistema genera el PDF aunque los thresholds fallen.
 
-**Timeouts**
-- Increase timeout in config
-- Check network connectivity
-- Reduce payload size
+## Integracion CI/CD
 
-## Contributing
+```yaml
+# Ejemplo GitHub Actions
+- name: Run Performance Tests
+  run: |
+    npm install
+    npm run smoke -- --skip-grafana --skip-open
+```
 
-To extend this framework:
+## Licencia
 
-1. Add new utilities in `src/utils/`
-2. Create new builders in `src/builders/`
-3. Define new metrics in `src/metrics/`
-4. Add new test types in `tests/`
+Uso interno.
 
-## License
+## Soporte
 
-Internal use only.
-
-## Support
-
-For issues or questions, contact the performance engineering team.
+Contactar al equipo de Performance Engineering.

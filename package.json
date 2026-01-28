@@ -3,34 +3,39 @@
   "version": "2.0.0",
   "description": "Professional k6 performance testing framework for SOAP web services",
   "scripts": {
-    "start": "npm run grafana:start && npm run grafana:open",
-    "stop": "npm run grafana:stop",
-    "smoke": "k6 run --out influxdb=http://localhost:8086/k6 tests/smoke/soap-smoke.test.js",
-    "load": "k6 run --out influxdb=http://localhost:8086/k6 tests/load/soap-load.test.js",
-    "stress": "k6 run --out influxdb=http://localhost:8086/k6 tests/stress/soap-stress.test.js",
-    "capacity": "k6 run --out influxdb=http://localhost:8086/k6 tests/capacity/soap-capacity.test.js",
-    "spike": "k6 run --out influxdb=http://localhost:8086/k6 tests/spike/soap-spike.test.js",
-    "soak": "k6 run --out influxdb=http://localhost:8086/k6 tests/soak/soap-soak.test.js",
-    "size": "k6 run --out influxdb=http://localhost:8086/k6 tests/size/soap-size.test.js",
-    "combined": "k6 run --out influxdb=http://localhost:8086/k6 tests/combined/soap-and-traffic.test.js",
+    "smoke": "node scripts/run-full-test.js smoke",
+    "load": "node scripts/run-full-test.js load",
+    "stress": "node scripts/run-full-test.js stress",
+    "capacity": "node scripts/run-full-test.js capacity",
+    "spike": "node scripts/run-full-test.js spike",
+    "soak": "node scripts/run-full-test.js soak",
+    "size": "node scripts/run-full-test.js size",
+    "combined": "node scripts/run-full-test.js combined",
 
-    "traffic:smoke": "k6 run --out influxdb=http://localhost:8086/k6 tests/traffic-monitoring/traffic-smoke.test.js",
-    "traffic:load": "k6 run --out influxdb=http://localhost:8086/k6 tests/traffic-monitoring/traffic-load.test.js",
-    "traffic:stress": "k6 run --out influxdb=http://localhost:8086/k6 tests/traffic-monitoring/traffic-stress.test.js",
+    "smoke:dev": "node scripts/run-full-test.js smoke dev",
+    "smoke:staging": "node scripts/run-full-test.js smoke staging",
+    "smoke:prod": "node scripts/run-full-test.js smoke prod",
+    "load:dev": "node scripts/run-full-test.js load dev",
+    "load:staging": "node scripts/run-full-test.js load staging",
+    "load:prod": "node scripts/run-full-test.js load prod",
+    "stress:dev": "node scripts/run-full-test.js stress dev",
+    "stress:staging": "node scripts/run-full-test.js stress staging",
+    "stress:prod": "node scripts/run-full-test.js stress prod",
+    "capacity:dev": "node scripts/run-full-test.js capacity dev",
+    "capacity:staging": "node scripts/run-full-test.js capacity staging",
+    "spike:dev": "node scripts/run-full-test.js spike dev",
+    "spike:staging": "node scripts/run-full-test.js spike staging",
+    "soak:dev": "node scripts/run-full-test.js soak dev",
+    "soak:staging": "node scripts/run-full-test.js soak staging",
 
-    "smoke:dev": "k6 run --out influxdb=http://localhost:8086/k6 -e ENVIRONMENT=dev tests/smoke/soap-smoke.test.js",
-    "smoke:staging": "k6 run --out influxdb=http://localhost:8086/k6 -e ENVIRONMENT=staging tests/smoke/soap-smoke.test.js",
-    "smoke:prod": "k6 run --out influxdb=http://localhost:8086/k6 -e ENVIRONMENT=prod tests/smoke/soap-smoke.test.js",
-    "load:dev": "k6 run --out influxdb=http://localhost:8086/k6 -e ENVIRONMENT=dev tests/load/soap-load.test.js",
-    "load:staging": "k6 run --out influxdb=http://localhost:8086/k6 -e ENVIRONMENT=staging tests/load/soap-load.test.js",
+    "traffic:smoke": "node scripts/run-full-test.js traffic-smoke",
+    "traffic:load": "node scripts/run-full-test.js traffic-load",
+    "traffic:stress": "node scripts/run-full-test.js traffic-stress",
 
-    "grafana:start": "docker-compose up -d",
-    "grafana:stop": "docker-compose down",
-    "grafana:open": "start http://localhost:3000/d/k6-performance/k6-performance-dashboard",
-    "grafana:clean": "docker exec k6-influxdb influx -execute \"DROP DATABASE k6; CREATE DATABASE k6\"",
-
-    "clean": "npm run grafana:clean",
-    "help": "echo. && echo === k6 Performance Testing Framework === && echo. && echo INICIAR/PARAR: && echo   npm start              - Inicia Grafana y abre dashboard && echo   npm stop               - Detiene Grafana && echo. && echo TESTS PRINCIPALES: && echo   npm run smoke          - Test de humo && echo   npm run load           - Test de carga && echo   npm run stress         - Test de estres && echo   npm run capacity       - Test de capacidad && echo   npm run spike          - Test de picos && echo   npm run soak           - Test de remojo && echo   npm run combined       - SOAP + Traffic en paralelo && echo. && echo TRAFFIC MONITORING: && echo   npm run traffic:smoke  - Traffic smoke test && echo   npm run traffic:load   - Traffic load test && echo. && echo UTILIDADES: && echo   npm run clean          - Limpia datos de Grafana && echo   npm run grafana:open   - Abre el dashboard && echo   npm run help           - Muestra esta ayuda && echo."
+    "start": "docker-compose up -d && start http://localhost:3000/d/k6-performance/k6-performance-dashboard",
+    "stop": "docker-compose down",
+    "clean": "docker exec k6-influxdb influx -execute \"DROP DATABASE k6; CREATE DATABASE k6\"",
+    "help": "node scripts/run-full-test.js --help"
   },
   "keywords": [
     "k6",
@@ -52,5 +57,7 @@
     "type": "git",
     "url": ""
   },
-  "dependencies": {}
+  "dependencies": {
+    "pdfkit": "^0.14.0"
+  }
 }
