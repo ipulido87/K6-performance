@@ -22,29 +22,25 @@ let trafficClient = null;
 
 export const options = {
   scenarios: {
-    // Scenario 1: SOAP Backend
+    // Scenario 1: SOAP Backend - 10 RPS constant rate
     soap_backend: {
-      executor: "ramping-vus",
-      startVUs: 0,
-      stages: [
-        { duration: getEnv("COMBINED_SOAP_STAGE1", "1m"), target: getEnvNumber("COMBINED_SOAP_VUS1", 5) },
-        { duration: getEnv("COMBINED_SOAP_STAGE2", "2m"), target: getEnvNumber("COMBINED_SOAP_VUS2", 10) },
-        { duration: getEnv("COMBINED_SOAP_STAGE3", "2m"), target: getEnvNumber("COMBINED_SOAP_VUS3", 15) },
-        { duration: getEnv("COMBINED_SOAP_STAGE4", "1m"), target: 0 },
-      ],
+      executor: "constant-arrival-rate",
+      rate: getEnvNumber("COMBINED_SOAP_RPS", 10),
+      timeUnit: "1s",
+      duration: getEnv("COMBINED_SOAP_DURATION", "5m"),
+      preAllocatedVUs: getEnvNumber("COMBINED_SOAP_VUS", 20),
+      maxVUs: getEnvNumber("COMBINED_SOAP_MAX_VUS", 50),
       exec: "soapTest",
       tags: { scenario: "soap" },
     },
-    // Scenario 2: Traffic Monitoring (REST/Frontend)
+    // Scenario 2: Traffic Monitoring (REST/Frontend) - 5 RPS
     traffic_frontend: {
-      executor: "ramping-vus",
-      startVUs: 0,
-      stages: [
-        { duration: getEnv("COMBINED_TRAFFIC_STAGE1", "1m"), target: getEnvNumber("COMBINED_TRAFFIC_VUS1", 3) },
-        { duration: getEnv("COMBINED_TRAFFIC_STAGE2", "2m"), target: getEnvNumber("COMBINED_TRAFFIC_VUS2", 5) },
-        { duration: getEnv("COMBINED_TRAFFIC_STAGE3", "2m"), target: getEnvNumber("COMBINED_TRAFFIC_VUS3", 8) },
-        { duration: getEnv("COMBINED_TRAFFIC_STAGE4", "1m"), target: 0 },
-      ],
+      executor: "constant-arrival-rate",
+      rate: getEnvNumber("COMBINED_TRAFFIC_RPS", 5),
+      timeUnit: "1s",
+      duration: getEnv("COMBINED_TRAFFIC_DURATION", "5m"),
+      preAllocatedVUs: getEnvNumber("COMBINED_TRAFFIC_VUS", 10),
+      maxVUs: getEnvNumber("COMBINED_TRAFFIC_MAX_VUS", 30),
       exec: "trafficTest",
       tags: { scenario: "traffic" },
     },
@@ -66,9 +62,9 @@ export function setup() {
     environment: config.environment,
     soapUrl: config.get("url"),
     trafficUrl: config.get("trafficUrl"),
-    soapStages: "5->10->15 VUs",
-    trafficStages: "3->5->8 VUs",
-    duration: "~6 minutes",
+    soapRPS: getEnvNumber("COMBINED_SOAP_RPS", 10),
+    trafficRPS: getEnvNumber("COMBINED_TRAFFIC_RPS", 5),
+    duration: "5 minutes",
   });
 
   // Get authentication token for Traffic Monitoring
@@ -135,8 +131,7 @@ export function soapTest() {
       errorMessage: validation.errors.message,
     });
   }
-
-  sleep(0.5);
+  // No sleep needed - constant-arrival-rate controls the request rate
 }
 
 // ============================================
@@ -174,8 +169,7 @@ export function trafficTest(data) {
     "Traffic: status is 200": (r) => r.status === 200,
     "Traffic: response time < 5s": (r) => r.timings.duration < 5000,
   });
-
-  sleep(1);
+  // No sleep needed - constant-arrival-rate controls the request rate
 }
 
 export function teardown(data) {

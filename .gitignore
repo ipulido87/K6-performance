@@ -5,6 +5,8 @@ reports/junit/*
 reports/allure-results/*
 reports/allure-report/*
 *.log
+reports
+
 
 # Keep directory structure
 !reports/html/.gitkeep
@@ -16,6 +18,7 @@ config/prod.json
 config/secrets.json
 *.env
 .env.*
+!.env.example
 
 # OS files
 .DS_Store

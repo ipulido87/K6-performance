@@ -13,10 +13,10 @@ const DASHBOARD_UID = 'k6-performance';
 
 // Panel IDs from the K6 dashboard (adjust based on your dashboard)
 const PANELS = {
-  vus: { id: 2, title: 'Virtual Users', width: 800, height: 300 },
-  rps: { id: 4, title: 'Request Rate', width: 800, height: 300 },
-  responseTime: { id: 6, title: 'Response Time', width: 800, height: 300 },
-  errorRate: { id: 8, title: 'Error Rate', width: 800, height: 300 },
+  vus: { id: 5, title: 'Virtual Users Over Time', width: 800, height: 300 },
+  rps: { id: 6, title: 'Requests per Second', width: 800, height: 300 },
+  responseTime: { id: 7, title: 'Response Time (Mean, P90, P95, P99)', width: 800, height: 400 },
+  responseTimeBreakdown: { id: 8, title: 'Response Time Breakdown', width: 800, height: 400 },
 };
 
 /**

@@ -119,15 +119,36 @@ if (!skipGrafana) {
     console.log('WARN: Grafana may already be running or Docker is not available');
   }
 
-  // Wait a moment for InfluxDB to be ready
+  // Wait for InfluxDB to be ready
   console.log('[2/7] Cleaning previous test data...');
+  console.log('   Waiting for InfluxDB to be ready...');
   try {
-    // Small delay to ensure InfluxDB is ready
-    execSync('timeout /t 2 /nobreak >nul 2>&1 || sleep 2', { stdio: 'ignore' });
-    execSync('docker exec k6-influxdb influx -execute "DROP DATABASE k6; CREATE DATABASE k6"', { stdio: 'pipe' });
+    // Wait 5 seconds for InfluxDB to be fully ready
+    execSync('ping -n 6 127.0.0.1 >nul', { stdio: 'ignore' });
+  } catch (e) {
+    // Fallback for non-Windows
+    try {
+      execSync('sleep 5', { stdio: 'ignore' });
+    } catch (e2) {
+      // Ignore
+    }
+  }
+
+  try {
+    // Drop and recreate database
+    execSync('docker exec k6-influxdb influx -execute "DROP DATABASE k6"', { stdio: 'pipe' });
+    execSync('docker exec k6-influxdb influx -execute "CREATE DATABASE k6"', { stdio: 'pipe' });
     console.log('   Database cleaned successfully');
   } catch (e) {
-    console.log('   Could not clean database (may be first run)');
+    console.log('   Could not clean database:', e.message);
+    // Try alternative method using curl
+    try {
+      execSync('curl -s -X POST "http://localhost:8086/query" --data-urlencode "q=DROP DATABASE k6"', { stdio: 'pipe' });
+      execSync('curl -s -X POST "http://localhost:8086/query" --data-urlencode "q=CREATE DATABASE k6"', { stdio: 'pipe' });
+      console.log('   Database cleaned via HTTP API');
+    } catch (e2) {
+      console.log('   WARNING: Could not clean database (may be first run)');
+    }
   }
 
   // Open Grafana dashboard

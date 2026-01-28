@@ -74,13 +74,13 @@
             "type": "influxdb",
             "uid": "influxdb"
           },
-          "query": "SELECT last(\"value\") FROM \"vus\" WHERE $timeFilter",
+          "query": "SELECT max(\"value\") FROM \"vus\" WHERE $timeFilter",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "time_series"
         }
       ],
-      "title": "Virtual Users",
+      "title": "Max Virtual Users",
       "type": "stat"
     },
     {

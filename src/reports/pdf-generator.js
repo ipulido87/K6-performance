@@ -216,12 +216,12 @@ class PDFReportGenerator {
       .text('Real-time performance metrics captured from Grafana dashboard during test execution.')
       .moveDown(1.5);
 
-    const chartOrder = ['vus', 'rps', 'responseTime', 'errorRate'];
+    const chartOrder = ['vus', 'rps', 'responseTime', 'responseTimeBreakdown'];
     const chartTitles = {
       vus: 'Virtual Users Over Time',
       rps: 'Requests Per Second',
-      responseTime: 'Response Time Distribution',
-      errorRate: 'Error Rate',
+      responseTime: 'Response Time (Mean, P90, P95, P99)',
+      responseTimeBreakdown: 'Response Time Breakdown',
     };
 
     let chartsAdded = 0;
