@@ -11,9 +11,9 @@ import { getEnv, getEnvNumber } from "../../src/config/env-loader.js";
 const config = loadConfig();
 const logger = createLogger("spike-test");
 
-const ACTIVITIES = validateEnvNumber(__ENV.ACTIVITIES, 1, 1, 100);
-const SIZE_MB = validateEnvNumber(__ENV.SIZE_MB, 0, 0, 100);
-const SPIKE_VUS = getEnvNumber("SPIKE_MAX_VUS", 100);
+const ACTIVITIES = validateEnvNumber(getEnvNumber("ACTIVITIES"), undefined, 1, 100);
+const SIZE_MB = validateEnvNumber(getEnvNumber("SIZE_MB"), undefined, 0, 100);
+const SPIKE_VUS = getEnvNumber("SPIKE_MAX_VUS");
 
 const soapBuilder = createSoapBuilder(config.getAll());
 const metrics = createMetricsManager();
@@ -22,16 +22,16 @@ export const options = {
   scenarios: {
     spike: {
       executor: "ramping-vus",
-      startVUs: getEnvNumber("SPIKE_START_VUS", 1),
+      startVUs: getEnvNumber("SPIKE_START_VUS"),
       stages: [
-        { duration: getEnv("SPIKE_STAGE1_DURATION", "30s"), target: getEnvNumber("SPIKE_STAGE1_TARGET", 5) },
-        { duration: getEnv("SPIKE_STAGE2_DURATION", "10s"), target: SPIKE_VUS },
-        { duration: getEnv("SPIKE_STAGE3_DURATION", "1m"), target: SPIKE_VUS },
-        { duration: getEnv("SPIKE_STAGE4_DURATION", "10s"), target: getEnvNumber("SPIKE_STAGE4_TARGET", 5) },
-        { duration: getEnv("SPIKE_STAGE5_DURATION", "1m"), target: getEnvNumber("SPIKE_STAGE5_TARGET", 5) },
-        { duration: getEnv("SPIKE_STAGE6_DURATION", "30s"), target: getEnvNumber("SPIKE_STAGE6_TARGET", 0) },
+        { duration: getEnv("SPIKE_STAGE1_DURATION"), target: getEnvNumber("SPIKE_STAGE1_TARGET") },
+        { duration: getEnv("SPIKE_STAGE2_DURATION"), target: SPIKE_VUS },
+        { duration: getEnv("SPIKE_STAGE3_DURATION"), target: SPIKE_VUS },
+        { duration: getEnv("SPIKE_STAGE4_DURATION"), target: getEnvNumber("SPIKE_STAGE4_TARGET") },
+        { duration: getEnv("SPIKE_STAGE5_DURATION"), target: getEnvNumber("SPIKE_STAGE5_TARGET") },
+        { duration: getEnv("SPIKE_STAGE6_DURATION"), target: getEnvNumber("SPIKE_STAGE6_TARGET") },
       ],
-      gracefulStop: getEnv("SPIKE_GRACEFUL_STOP", "30s"),
+      gracefulStop: getEnv("SPIKE_GRACEFUL_STOP"),
     },
   },
   thresholds: getThresholds("spike"),
@@ -78,7 +78,8 @@ export default function () {
     });
 
     const badCount = metrics.increment("badResponses");
-    if (badCount % 50 === 0) {
+    const logEveryBad = getEnvNumber("SPIKE_LOG_EVERY_BAD");
+    if (logEveryBad > 0 && badCount % logEveryBad === 0) {
       logger.logBadResponse(response, {
         testType: "spike",
         sizeMB: toMB(bodySize).toFixed(2),
@@ -88,7 +89,7 @@ export default function () {
     }
   }
 
-  sleep(0.5);
+  sleep(getEnvNumber("SPIKE_SLEEP"));
 }
 
 export function teardown(data) {

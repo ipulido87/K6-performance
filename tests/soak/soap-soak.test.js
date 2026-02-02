@@ -11,10 +11,10 @@ import { getEnv, getEnvNumber } from "../../src/config/env-loader.js";
 const config = loadConfig();
 const logger = createLogger("soak-test");
 
-const ACTIVITIES = validateEnvNumber(__ENV.ACTIVITIES, 1, 1, 100);
-const SIZE_MB = validateEnvNumber(__ENV.SIZE_MB, 0, 0, 100);
-const SOAK_DURATION = getEnv("SOAK_DURATION", "30m");
-const SOAK_VUS = getEnvNumber("SOAK_VUS", 10);
+const ACTIVITIES = validateEnvNumber(getEnvNumber("ACTIVITIES"), undefined, 1, 100);
+const SIZE_MB = validateEnvNumber(getEnvNumber("SIZE_MB"), undefined, 0, 100);
+const SOAK_DURATION = getEnv("SOAK_DURATION");
+const SOAK_VUS = getEnvNumber("SOAK_VUS");
 
 const soapBuilder = createSoapBuilder(config.getAll());
 const metrics = createMetricsManager();
@@ -25,7 +25,7 @@ export const options = {
       executor: "constant-vus",
       vus: SOAK_VUS,
       duration: SOAK_DURATION,
-      gracefulStop: getEnv("SOAK_GRACEFUL_STOP", "30s"),
+      gracefulStop: getEnv("SOAK_GRACEFUL_STOP"),
     },
   },
   thresholds: getThresholds("soak"),
@@ -74,7 +74,8 @@ export default function () {
     });
 
     const badCount = metrics.increment("badResponses");
-    if (badCount % 100 === 0) {
+    const logEveryBad = getEnvNumber("SOAK_LOG_EVERY_BAD");
+    if (logEveryBad > 0 && badCount % logEveryBad === 0) {
       logger.logBadResponse(response, {
         testType: "soak",
         sizeMB: toMB(bodySize).toFixed(2),
@@ -84,7 +85,7 @@ export default function () {
     }
   }
 
-  sleep(1);
+  sleep(getEnvNumber("SOAK_SLEEP"));
 }
 
 export function teardown(data) {

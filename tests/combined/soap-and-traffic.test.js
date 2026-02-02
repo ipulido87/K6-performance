@@ -12,7 +12,7 @@ import { TrafficMonitoringClient } from "../../src/clients/traffic-monitoring-cl
 const config = loadConfig();
 const logger = createLogger("combined-test");
 
-const ACTIVITIES = validateEnvNumber(__ENV.ACTIVITIES, 1, 1, 100);
+const ACTIVITIES = validateEnvNumber(getEnvNumber("ACTIVITIES"), undefined, 1, 100);
 
 const soapBuilder = createSoapBuilder(config.getAll());
 const metrics = createMetricsManager();
@@ -22,38 +22,46 @@ let trafficClient = null;
 
 export const options = {
   scenarios: {
-    // Scenario 1: SOAP Backend - 10 RPS constant rate
+    // Scenario 1: SOAP Backend - progressive arrival rate
     soap_backend: {
-      executor: "constant-arrival-rate",
-      rate: getEnvNumber("COMBINED_SOAP_RPS", 10),
-      timeUnit: "1s",
-      duration: getEnv("COMBINED_SOAP_DURATION", "5m"),
-      preAllocatedVUs: getEnvNumber("COMBINED_SOAP_VUS", 20),
-      maxVUs: getEnvNumber("COMBINED_SOAP_MAX_VUS", 50),
+      executor: "ramping-arrival-rate",
+      startRate: getEnvNumber("COMBINED_SOAP_START_RPS"),
+      timeUnit: getEnv("COMBINED_SOAP_TIME_UNIT"),
+      preAllocatedVUs: getEnvNumber("COMBINED_SOAP_VUS"),
+      maxVUs: getEnvNumber("COMBINED_SOAP_MAX_VUS"),
+      stages: [
+        { duration: getEnv("COMBINED_SOAP_STAGE1_DURATION"), target: getEnvNumber("COMBINED_SOAP_STAGE1_TARGET") },
+        { duration: getEnv("COMBINED_SOAP_STAGE2_DURATION"), target: getEnvNumber("COMBINED_SOAP_STAGE2_TARGET") },
+        { duration: getEnv("COMBINED_SOAP_STAGE3_DURATION"), target: getEnvNumber("COMBINED_SOAP_STAGE3_TARGET") },
+      ],
       exec: "soapTest",
       tags: { scenario: "soap" },
     },
-    // Scenario 2: Traffic Monitoring (REST/Frontend) - 5 RPS
+    // Scenario 2: Traffic Monitoring (REST/Frontend) - progressive arrival rate
     traffic_frontend: {
-      executor: "constant-arrival-rate",
-      rate: getEnvNumber("COMBINED_TRAFFIC_RPS", 5),
-      timeUnit: "1s",
-      duration: getEnv("COMBINED_TRAFFIC_DURATION", "5m"),
-      preAllocatedVUs: getEnvNumber("COMBINED_TRAFFIC_VUS", 10),
-      maxVUs: getEnvNumber("COMBINED_TRAFFIC_MAX_VUS", 30),
+      executor: "ramping-arrival-rate",
+      startRate: getEnvNumber("COMBINED_TRAFFIC_START_RPS"),
+      timeUnit: getEnv("COMBINED_TRAFFIC_TIME_UNIT"),
+      preAllocatedVUs: getEnvNumber("COMBINED_TRAFFIC_VUS"),
+      maxVUs: getEnvNumber("COMBINED_TRAFFIC_MAX_VUS"),
+      stages: [
+        { duration: getEnv("COMBINED_TRAFFIC_STAGE1_DURATION"), target: getEnvNumber("COMBINED_TRAFFIC_STAGE1_TARGET") },
+        { duration: getEnv("COMBINED_TRAFFIC_STAGE2_DURATION"), target: getEnvNumber("COMBINED_TRAFFIC_STAGE2_TARGET") },
+        { duration: getEnv("COMBINED_TRAFFIC_STAGE3_DURATION"), target: getEnvNumber("COMBINED_TRAFFIC_STAGE3_TARGET") },
+      ],
       exec: "trafficTest",
       tags: { scenario: "traffic" },
     },
   },
   thresholds: {
     // Global thresholds
-    http_req_failed: ["rate<0.30"],
+    http_req_failed: [`rate<${getEnvNumber("COMBINED_THRESHOLD_FAILED_RATE")}`],
 
     // Scenario thresholds
-    "http_req_duration{scenario:soap}": ["p(95)<30000"],
-    "http_req_duration{scenario:traffic}": ["p(95)<5000"],
-    "http_req_failed{scenario:soap}": ["rate<0.50"],
-    "http_req_failed{scenario:traffic}": ["rate<0.10"],
+    "http_req_duration{scenario:soap}": [`p(95)<${getEnvNumber("COMBINED_SOAP_THRESHOLD_P95_DURATION")}`],
+    "http_req_duration{scenario:traffic}": [`p(95)<${getEnvNumber("COMBINED_TRAFFIC_THRESHOLD_P95_DURATION")}`],
+    "http_req_failed{scenario:soap}": [`rate<${getEnvNumber("COMBINED_SOAP_THRESHOLD_FAILED_RATE")}`],
+    "http_req_failed{scenario:traffic}": [`rate<${getEnvNumber("COMBINED_TRAFFIC_THRESHOLD_FAILED_RATE")}`],
   },
 };
 
@@ -62,9 +70,12 @@ export function setup() {
     environment: config.environment,
     soapUrl: config.get("url"),
     trafficUrl: config.get("trafficUrl"),
-    soapRPS: getEnvNumber("COMBINED_SOAP_RPS", 10),
-    trafficRPS: getEnvNumber("COMBINED_TRAFFIC_RPS", 5),
-    duration: "5 minutes",
+    soapStages: `${getEnv("COMBINED_SOAP_STAGE1_DURATION")}@${getEnvNumber("COMBINED_SOAP_STAGE1_TARGET")} -> ` +
+      `${getEnv("COMBINED_SOAP_STAGE2_DURATION")}@${getEnvNumber("COMBINED_SOAP_STAGE2_TARGET")} -> ` +
+      `${getEnv("COMBINED_SOAP_STAGE3_DURATION")}@${getEnvNumber("COMBINED_SOAP_STAGE3_TARGET")}`,
+    trafficStages: `${getEnv("COMBINED_TRAFFIC_STAGE1_DURATION")}@${getEnvNumber("COMBINED_TRAFFIC_STAGE1_TARGET")} -> ` +
+      `${getEnv("COMBINED_TRAFFIC_STAGE2_DURATION")}@${getEnvNumber("COMBINED_TRAFFIC_STAGE2_TARGET")} -> ` +
+      `${getEnv("COMBINED_TRAFFIC_STAGE3_DURATION")}@${getEnvNumber("COMBINED_TRAFFIC_STAGE3_TARGET")}`,
   });
 
   // Get authentication token for Traffic Monitoring
@@ -79,7 +90,7 @@ export function setup() {
 
   if (authUrl && clientId) {
     const authPayload = {
-      grant_type: grantType || "password",
+      grant_type: grantType,
       client_id: clientId,
       client_secret: clientSecret,
       username: username,
@@ -118,7 +129,7 @@ export function soapTest() {
 
   const response = http.post(config.get("url"), body, {
     headers: { "Content-Type": "text/xml; charset=utf-8" },
-    timeout: "60s",
+    timeout: getEnv("COMBINED_SOAP_TIMEOUT"),
     tags,
   });
 
@@ -142,7 +153,7 @@ export function trafficTest(data) {
 
   if (!trafficUrl) {
     logger.warn("Traffic URL not configured, skipping");
-    sleep(1);
+    sleep(getEnvNumber("COMBINED_TRAFFIC_SLEEP"));
     return;
   }
 
@@ -161,13 +172,13 @@ export function trafficTest(data) {
 
   const response = http.get(trafficUrl, {
     headers,
-    timeout: "30s",
+    timeout: getEnv("COMBINED_TRAFFIC_TIMEOUT"),
     tags,
   });
 
   check(response, {
     "Traffic: status is 200": (r) => r.status === 200,
-    "Traffic: response time < 5s": (r) => r.timings.duration < 5000,
+    "Traffic: response time < max": (r) => r.timings.duration < getEnvNumber("COMBINED_TRAFFIC_MAX_RESPONSE_MS"),
   });
   // No sleep needed - constant-arrival-rate controls the request rate
 }

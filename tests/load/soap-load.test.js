@@ -6,14 +6,14 @@ import { createSoapBuilder } from "../../src/builders/index.js";
 import { validateSoapResponse } from "../../src/checks/index.js";
 import { createMetricsManager } from "../../src/metrics/index.js";
 import { createLogger, validateEnvNumber, toMB } from "../../src/utils/index.js";
-import { getEnvNumber } from "../../src/config/env-loader.js";
+import { getEnv, getEnvNumber } from "../../src/config/env-loader.js";
 
 const config = loadConfig();
 const logger = createLogger("load-test");
 
-const ACTIVITIES = validateEnvNumber(__ENV.ACTIVITIES, 1, 1, 100);
-const SIZE_MB = validateEnvNumber(__ENV.SIZE_MB, 0, 0, 100);
-const LOG_EVERY_BAD = validateEnvNumber(__ENV.LOG_EVERY_BAD, 50, 1, 1000);
+const ACTIVITIES = validateEnvNumber(getEnvNumber("ACTIVITIES"), undefined, 1, 100);
+const SIZE_MB = validateEnvNumber(getEnvNumber("SIZE_MB"), undefined, 0, 100);
+const LOG_EVERY_BAD = validateEnvNumber(getEnvNumber("LOAD_LOG_EVERY_BAD"), undefined, 1, 1000);
 
 const soapBuilder = createSoapBuilder(config.getAll());
 const metrics = createMetricsManager();
@@ -22,25 +22,25 @@ export const options = {
   scenarios: {
     load: {
       executor: "ramping-arrival-rate",
-      startRate: getEnvNumber('LOAD_START_RATE', 1),
-      timeUnit: "2s",
-      preAllocatedVUs: validateEnvNumber(__ENV.PRE_VUS, getEnvNumber('LOAD_PRE_VUS', 30), 1, 1000),
-      maxVUs: validateEnvNumber(__ENV.MAX_VUS, getEnvNumber('LOAD_MAX_VUS', 200), 1, 2000),
+      startRate: getEnvNumber('LOAD_START_RATE'),
+      timeUnit: getEnv("LOAD_TIME_UNIT"),
+      preAllocatedVUs: validateEnvNumber(getEnvNumber('LOAD_PRE_VUS'), undefined, 1, 1000),
+      maxVUs: validateEnvNumber(getEnvNumber('LOAD_MAX_VUS'), undefined, 1, 2000),
       stages: [
-        { duration: "2m", target: getEnvNumber('LOAD_TARGET_RPS', 10) },
-        { duration: "2m", target: getEnvNumber('LOAD_TARGET_RPS', 10) },
-        { duration: "2m", target: getEnvNumber('LOAD_TARGET_RPS', 10) },
-        { duration: "2m", target: getEnvNumber('LOAD_TARGET_RPS', 10) },
-        { duration: "1m", target: 0 },
+        { duration: getEnv("LOAD_STAGE1_DURATION"), target: getEnvNumber('LOAD_TARGET_RPS') },
+        { duration: getEnv("LOAD_STAGE2_DURATION"), target: getEnvNumber('LOAD_TARGET_RPS') },
+        { duration: getEnv("LOAD_STAGE3_DURATION"), target: getEnvNumber('LOAD_TARGET_RPS') },
+        { duration: getEnv("LOAD_STAGE4_DURATION"), target: getEnvNumber('LOAD_TARGET_RPS') },
+        { duration: getEnv("LOAD_STAGE5_DURATION"), target: getEnvNumber("LOAD_STAGE5_TARGET") },
       ],
-      gracefulStop: "30s",
+      gracefulStop: getEnv("LOAD_GRACEFUL_STOP"),
     },
   },
   thresholds: getThresholds("load"),
 };
 
 export function setup() {
-  const maxVUs = validateEnvNumber(__ENV.MAX_VUS, 200, 1, 2000);
+  const maxVUs = validateEnvNumber(getEnvNumber("LOAD_MAX_VUS"), undefined, 1, 2000);
 
   logger.info("Starting load test", {
     environment: config.environment,
@@ -92,7 +92,7 @@ export default function () {
     }
   }
 
-  sleep(0.001);
+  sleep(getEnvNumber("LOAD_SLEEP"));
 }
 
 export function teardown(data) {

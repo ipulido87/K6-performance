@@ -3,7 +3,6 @@
  * Reads the .env file and provides access to variables
  */
 
-// Load the .env file
 const envFile = open('../../.env', 'r');
 
 // Parse the .env file
@@ -46,7 +45,7 @@ export const ENV = parseEnvFile(envFile);
  * @param {any} defaultValue - Default value if missing
  * @returns {any} - Variable value or default value
  */
-export function getEnv(key, defaultValue = null) {
+export function getEnv(key, defaultValue = undefined) {
   return ENV[key] !== undefined ? ENV[key] : defaultValue;
 }
 
@@ -56,7 +55,7 @@ export function getEnv(key, defaultValue = null) {
  * @param {number} defaultValue - Default value if missing
  * @returns {number} - Numeric value
  */
-export function getEnvNumber(key, defaultValue = 0) {
+export function getEnvNumber(key, defaultValue = undefined) {
   const value = ENV[key];
   if (value === undefined) return defaultValue;
   const num = parseFloat(value);
@@ -69,7 +68,7 @@ export function getEnvNumber(key, defaultValue = 0) {
  * @param {boolean} defaultValue - Default value if missing
  * @returns {boolean} - Boolean value
  */
-export function getEnvBoolean(key, defaultValue = false) {
+export function getEnvBoolean(key, defaultValue = undefined) {
   const value = ENV[key];
   if (value === undefined) return defaultValue;
   return value.toLowerCase() === 'true' || value === '1';

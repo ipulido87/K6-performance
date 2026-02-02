@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 /**
  * K6 PDF Report Generator CLI
  * Generates PDF reports from K6 JSON output files

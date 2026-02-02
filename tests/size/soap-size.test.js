@@ -15,10 +15,10 @@ import { getEnv, getEnvNumber } from "../../src/config/env-loader.js";
 const config = loadConfig();
 const logger = createLogger("size-test");
 
-const START_MB = getEnvNumber("SIZE_START_MB", 0.5);
-const MAX_MB = getEnvNumber("SIZE_MAX_MB", 64);
-const MODE = getEnv("SIZE_STEP_MODE", "double");
-const ADD_MB = getEnvNumber("SIZE_STEP_MB", 1);
+const START_MB = getEnvNumber("SIZE_START_MB");
+const MAX_MB = getEnvNumber("SIZE_MAX_MB");
+const MODE = getEnv("SIZE_STEP_MODE");
+const ADD_MB = getEnvNumber("SIZE_STEP_MB");
 
 const soapBuilder = createSoapBuilder(config.getAll());
 const metrics = createSizeTestMetrics();
@@ -38,7 +38,7 @@ function buildSizeSequence() {
 const SIZE_SEQUENCE = buildSizeSequence();
 
 export const options = {
-  vus: getEnvNumber("SIZE_VUS", 1),
+  vus: getEnvNumber("SIZE_VUS"),
   iterations: SIZE_SEQUENCE.length,
   thresholds: getThresholds("size"),
 };
@@ -68,7 +68,7 @@ export default function (data) {
 
   const response = http.post(config.get("url"), body, {
     headers: { "Content-Type": "text/xml; charset=utf-8" },
-    timeout: getEnv("SIZE_TIMEOUT", "180s"),
+    timeout: getEnv("SIZE_TIMEOUT"),
     tags: {
       name: "DET-WS-SIZE",
       target_mb: String(targetMB),
@@ -111,7 +111,7 @@ export default function (data) {
     });
   }
 
-  sleep(getEnvNumber("SIZE_SLEEP", 0.2));
+  sleep(getEnvNumber("SIZE_SLEEP"));
 }
 
 export function teardown(data) {

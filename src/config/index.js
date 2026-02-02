@@ -1,6 +1,7 @@
 import { openJsonFromRoot } from "../utils/files.js";
 import { validateRequired, isValidUrl } from "../utils/validators.js";
 import { getEnvironment } from "./environments.js";
+import { getEnv } from "./env-loader.js";
 import { getThresholds } from "./thresholds.js";
 
 export class Config {
@@ -64,7 +65,7 @@ export class Config {
   }
 }
 
-export function loadConfig(environment = __ENV.ENVIRONMENT || "local") {
+export function loadConfig(environment = getEnv("ENVIRONMENT")) {
   return new Config(environment);
 }
 

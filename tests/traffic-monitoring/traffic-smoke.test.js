@@ -5,12 +5,12 @@ import { getThresholds } from "../../src/config/thresholds.js";
 import { createTrafficMonitoringClient } from "../../src/clients/traffic-monitoring-client.js";
 
 export const options = {
-  vus: getEnvNumber('SMOKE_VUS', 1),
-  duration: getEnv('SMOKE_DURATION', '15s'),
+  vus: getEnvNumber('SMOKE_VUS'),
+  duration: getEnv('SMOKE_DURATION'),
   thresholds: getThresholds("smoke"),
 };
 
-const ENV = __ENV.ENVIRONMENT || "local";
+const ENV = getEnv("ENVIRONMENT");
 const environment = getEnvironment(ENV);
 
 export function setup() {
@@ -32,7 +32,7 @@ export default function(data) {
     client.getDataDomain();
   }
 
-  sleep(1);
+  sleep(getEnvNumber("TRAFFIC_SMOKE_SLEEP"));
 }
 
 export function teardown(data) {

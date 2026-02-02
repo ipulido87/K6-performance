@@ -15,8 +15,8 @@ const soapBuilder = createSoapBuilder(config.getAll());
 const metrics = createMetricsManager();
 
 export const options = {
-  vus: getEnvNumber('SMOKE_VUS', 1),
-  duration: getEnv('SMOKE_DURATION', '15s'),
+  vus: getEnvNumber('SMOKE_VUS'),
+  duration: getEnv('SMOKE_DURATION'),
   thresholds: getThresholds("smoke"),
 };
 
@@ -48,7 +48,7 @@ export default function () {
     });
   }
 
-  sleep(0.1);
+  sleep(getEnvNumber("SMOKE_SLEEP"));
 }
 
 export function teardown(data) {

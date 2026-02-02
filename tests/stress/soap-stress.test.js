@@ -11,10 +11,9 @@ import { getEnv, getEnvNumber } from "../../src/config/env-loader.js";
 const config = loadConfig();
 const logger = createLogger("stress-test");
 
-const ACTIVITIES = validateEnvNumber(__ENV.ACTIVITIES, 1, 1, 100);
-const SIZE_MB = validateEnvNumber(__ENV.SIZE_MB, 0, 0, 100);
-const LOG_EVERY_BAD = validateEnvNumber(__ENV.LOG_EVERY_BAD, 20, 1, 1000);
-const START_RPS = validateEnvNumber(__ENV.START_RPS, 2, 1, 100);
+const ACTIVITIES = validateEnvNumber(getEnvNumber("ACTIVITIES"), undefined, 1, 100);
+const SIZE_MB = validateEnvNumber(getEnvNumber("SIZE_MB"), undefined, 0, 100);
+const LOG_EVERY_BAD = validateEnvNumber(getEnvNumber("STRESS_LOG_EVERY_BAD"), undefined, 1, 1000);
 
 const soapBuilder = createSoapBuilder(config.getAll());
 const metrics = createMetricsManager();
@@ -23,20 +22,20 @@ export const options = {
   scenarios: {
     stress: {
       executor: "ramping-arrival-rate",
-      startRate: getEnvNumber("STRESS_START_RPS", 1),        // Starts at 1 req/s
-      timeUnit: "1s",
-      preAllocatedVUs: getEnvNumber("STRESS_PRE_VUS", 20),
-      maxVUs: getEnvNumber("STRESS_MAX_VUS", 50),
+      startRate: getEnvNumber("STRESS_START_RPS"),        // Starts at 1 req/s
+      timeUnit: getEnv("STRESS_TIME_UNIT"),
+      preAllocatedVUs: getEnvNumber("STRESS_PRE_VUS"),
+      maxVUs: getEnvNumber("STRESS_MAX_VUS"),
       stages: [
         // Gradual ramp up to max 5 RPS
-        { duration: getEnv("STRESS_STAGE1_DURATION", "1m"), target: getEnvNumber("STRESS_STAGE1_TARGET", 1) },   // 1 req/s
-        { duration: getEnv("STRESS_STAGE2_DURATION", "1m"), target: getEnvNumber("STRESS_STAGE2_TARGET", 2) },   // 2 req/s
-        { duration: getEnv("STRESS_STAGE3_DURATION", "1m"), target: getEnvNumber("STRESS_STAGE3_TARGET", 3) },   // 3 req/s
-        { duration: getEnv("STRESS_STAGE4_DURATION", "1m"), target: getEnvNumber("STRESS_STAGE4_TARGET", 4) },   // 4 req/s
-        { duration: getEnv("STRESS_STAGE5_DURATION", "2m"), target: getEnvNumber("STRESS_STAGE5_TARGET", 5) },   // 5 req/s (max)
-        { duration: getEnv("STRESS_STAGE6_DURATION", "30s"), target: getEnvNumber("STRESS_STAGE6_TARGET", 0) },  // Ramp-down
+        { duration: getEnv("STRESS_STAGE1_DURATION"), target: getEnvNumber("STRESS_STAGE1_TARGET") },   // 1 req/s
+        { duration: getEnv("STRESS_STAGE2_DURATION"), target: getEnvNumber("STRESS_STAGE2_TARGET") },   // 2 req/s
+        { duration: getEnv("STRESS_STAGE3_DURATION"), target: getEnvNumber("STRESS_STAGE3_TARGET") },   // 3 req/s
+        { duration: getEnv("STRESS_STAGE4_DURATION"), target: getEnvNumber("STRESS_STAGE4_TARGET") },   // 4 req/s
+        { duration: getEnv("STRESS_STAGE5_DURATION"), target: getEnvNumber("STRESS_STAGE5_TARGET") },   // 5 req/s (max)
+        { duration: getEnv("STRESS_STAGE6_DURATION"), target: getEnvNumber("STRESS_STAGE6_TARGET") },  // Ramp-down
       ],
-      gracefulStop: getEnv("STRESS_GRACEFUL_STOP", "30s"),
+      gracefulStop: getEnv("STRESS_GRACEFUL_STOP"),
     },
   },
   thresholds: getThresholds("stress"),
@@ -70,7 +69,7 @@ export default function () {
 
   const response = http.post(config.get("url"), body, {
     headers: { "Content-Type": "text/xml; charset=utf-8" },
-    timeout: "90s",
+    timeout: getEnv("STRESS_TIMEOUT"),
     tags,
   });
 
@@ -98,7 +97,7 @@ export default function () {
     }
   }
 
-  sleep(0.001);
+  sleep(getEnvNumber("STRESS_SLEEP"));
 }
 
 export function teardown(data) {
