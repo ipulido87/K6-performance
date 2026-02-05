@@ -1,56 +1,15 @@
-import http from "k6/http";
-import { sleep } from "k6";
-
-import { loadConfig, getThresholds } from "../../src/config/index.js";
-import { createSoapBuilder } from "../../src/builders/index.js";
-import { runSoapChecks } from "../../src/checks/index.js";
-import { createMetricsManager } from "../../src/metrics/index.js";
-import { createLogger } from "../../src/utils/index.js";
+import { createSoapTest } from "../../src/runners/index.js";
 import { getEnv, getEnvNumber } from "../../src/config/env-loader.js";
 
-const config = loadConfig();
-const logger = createLogger("smoke-test");
+const test = createSoapTest("smoke", {
+  smoke: {
+    executor: "constant-vus",
+    vus: getEnvNumber("SMOKE_VUS"),
+    duration: getEnv("SMOKE_DURATION"),
+  },
+});
 
-const soapBuilder = createSoapBuilder(config.getAll());
-const metrics = createMetricsManager();
-
-export const options = {
-  vus: getEnvNumber('SMOKE_VUS'),
-  duration: getEnv('SMOKE_DURATION'),
-  thresholds: getThresholds("smoke"),
-};
-
-export function setup() {
-  logger.info("Starting smoke test", {
-    environment: config.environment,
-    url: config.get("url"),
-  });
-}
-
-export default function () {
-  const body = soapBuilder.buildSimple();
-
-  const response = http.post(config.get("url"), body, {
-    headers: { "Content-Type": "text/xml; charset=utf-8" },
-    timeout: config.get("timeout"),
-    tags: { name: "DET-WS-SMOKE" },
-  });
-
-  const checkResult = runSoapChecks(response, { name: "Smoke" });
-
-  if (checkResult) {
-    metrics.recordSuccess(response);
-  } else {
-    metrics.recordBadResponse(response);
-    logger.logBadResponse(response, {
-      testType: "smoke",
-      bodySize: body.length,
-    });
-  }
-
-  sleep(getEnvNumber("SMOKE_SLEEP"));
-}
-
-export function teardown(data) {
-  logger.info("Smoke test completed");
-}
+export const options = test.options;
+export const setup = test.setup;
+export default test.default;
+export const teardown = test.teardown;

@@ -1,89 +1,38 @@
 import { getEnv } from './env-loader.js';
 
-/**
- * Parameterized environment configuration
- * Values are loaded from the .env file
- */
-export const environments = {
-  local: {
-    baseUrl: getEnv('LOCAL_BASE_URL'),
-    path: getEnv('LOCAL_PATH'),
-    timeout: getEnv('LOCAL_TIMEOUT'),
-    soapTemplates: {
-      base: "data/templates/soap/connector2bridge_base.xml",
-      activity: "data/templates/soap/activity.xml",
-    },
-    // Traffic Monitoring REST API
-    authUrl: getEnv('LOCAL_AUTH_URL'),
-    trafficUrl: getEnv('LOCAL_TRAFFIC_URL'),
-    clientId: getEnv('LOCAL_CLIENT_ID'),
-    clientSecret: getEnv('LOCAL_CLIENT_SECRET'),
-    authGrantType: getEnv('LOCAL_AUTH_GRANT_TYPE'),
-    authUsername: getEnv('LOCAL_AUTH_USERNAME'),
-    authPassword: getEnv('LOCAL_AUTH_PASSWORD'),
-  },
-
-  dev: {
-    baseUrl: getEnv('DEV_BASE_URL'),
-    path: getEnv('DEV_PATH'),
-    timeout: getEnv('DEV_TIMEOUT'),
-    soapTemplates: {
-      base: "data/templates/soap/connector2bridge_base.xml",
-      activity: "data/templates/soap/activity.xml",
-    },
-    // Traffic Monitoring REST API
-    authUrl: getEnv('DEV_AUTH_URL'),
-    trafficUrl: getEnv('DEV_TRAFFIC_URL'),
-    clientId: getEnv('DEV_CLIENT_ID'),
-    clientSecret: getEnv('DEV_CLIENT_SECRET'),
-    authGrantType: getEnv('DEV_AUTH_GRANT_TYPE'),
-    authUsername: getEnv('DEV_AUTH_USERNAME'),
-    authPassword: getEnv('DEV_AUTH_PASSWORD'),
-  },
-
-  staging: {
-    baseUrl: getEnv('STAGING_BASE_URL'),
-    path: getEnv('STAGING_PATH'),
-    timeout: getEnv('STAGING_TIMEOUT'),
-    soapTemplates: {
-      base: "data/templates/soap/connector2bridge_base.xml",
-      activity: "data/templates/soap/activity.xml",
-    },
-    // Traffic Monitoring REST API
-    authUrl: getEnv('STAGING_AUTH_URL'),
-    trafficUrl: getEnv('STAGING_TRAFFIC_URL'),
-    clientId: getEnv('STAGING_CLIENT_ID'),
-    clientSecret: getEnv('STAGING_CLIENT_SECRET'),
-    authGrantType: getEnv('STAGING_AUTH_GRANT_TYPE'),
-    authUsername: getEnv('STAGING_AUTH_USERNAME'),
-    authPassword: getEnv('STAGING_AUTH_PASSWORD'),
-  },
-
-  prod: {
-    baseUrl: getEnv('PROD_BASE_URL'),
-    path: getEnv('PROD_PATH'),
-    timeout: getEnv('PROD_TIMEOUT'),
-    soapTemplates: {
-      base: "data/templates/soap/connector2bridge_base.xml",
-      activity: "data/templates/soap/activity.xml",
-    },
-    // Traffic Monitoring REST API
-    authUrl: getEnv('PROD_AUTH_URL'),
-    trafficUrl: getEnv('PROD_TRAFFIC_URL'),
-    clientId: getEnv('PROD_CLIENT_ID'),
-    clientSecret: getEnv('PROD_CLIENT_SECRET'),
-    authGrantType: getEnv('PROD_AUTH_GRANT_TYPE'),
-    authUsername: getEnv('PROD_AUTH_USERNAME'),
-    authPassword: getEnv('PROD_AUTH_PASSWORD'),
-  },
+const SOAP_TEMPLATES = {
+  base: "data/templates/soap/connector2bridge_base.xml",
+  activity: "data/templates/soap/activity.xml",
 };
+
+const VALID_ENVS = ['local', 'dev', 'staging', 'prod'];
+
+function buildEnvConfig(prefix) {
+  return {
+    baseUrl: getEnv(`${prefix}_BASE_URL`),
+    path: getEnv(`${prefix}_PATH`),
+    timeout: getEnv(`${prefix}_TIMEOUT`),
+    soapTemplates: { ...SOAP_TEMPLATES },
+    authUrl: getEnv(`${prefix}_AUTH_URL`),
+    trafficUrl: getEnv(`${prefix}_TRAFFIC_URL`),
+    clientId: getEnv(`${prefix}_CLIENT_ID`),
+    clientSecret: getEnv(`${prefix}_CLIENT_SECRET`),
+    authGrantType: getEnv(`${prefix}_AUTH_GRANT_TYPE`),
+    authUsername: getEnv(`${prefix}_AUTH_USERNAME`),
+    authPassword: getEnv(`${prefix}_AUTH_PASSWORD`),
+  };
+}
+
+export const environments = Object.fromEntries(
+  VALID_ENVS.map(env => [env, buildEnvConfig(env.toUpperCase())])
+);
 
 export function getEnvironment(envName = "local") {
   const env = environments[envName.toLowerCase()];
 
   if (!env) {
     throw new Error(
-      `Unknown environment: ${envName}. Available: ${Object.keys(environments).join(", ")}`
+      `Unknown environment: ${envName}. Available: ${VALID_ENVS.join(", ")}`
     );
   }
 

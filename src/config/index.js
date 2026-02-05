@@ -70,3 +70,4 @@ export function loadConfig(environment = getEnv("ENVIRONMENT")) {
 }
 
 export { getThresholds } from "./thresholds.js";
+export { buildStages } from "./stage-builder.js";

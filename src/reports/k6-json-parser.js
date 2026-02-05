@@ -232,6 +232,7 @@ function extractKeyMetrics(parsedData) {
 
   // Calculate stats
   const sorted = [...httpReqDuration].filter((v) => typeof v === 'number').sort((a, b) => a - b);
+  const messageSizeMB = extractMessageSizeMB(metrics);
 
   return {
     totalRequests: httpReqs.length,
@@ -251,7 +252,40 @@ function extractKeyMetrics(parsedData) {
     rps: parsedData.duration > 0 ? httpReqs.length / (parsedData.duration / 1000) : 0,
     vusMax: vus.length > 0 ? Math.max(...vus) : 0,
     iterations: iterations.length,
+    messageSizeMB,
   };
+}
+
+/**
+ * Extract request message size in MB from custom metric or request tags
+ * @param {object} metrics - Parsed metrics map
+ * @returns {object|null} Message size stats in MB
+ */
+function extractMessageSizeMB(metrics) {
+  const payloadMBValues = metrics['payload_mb']?.values?.filter((v) => typeof v === 'number') || [];
+  if (payloadMBValues.length > 0) {
+    const sum = payloadMBValues.reduce((a, b) => a + b, 0);
+    return {
+      avg: sum / payloadMBValues.length,
+      max: Math.max(...payloadMBValues),
+      source: 'payload_mb',
+    };
+  }
+
+  const taggedSizes = (metrics['http_reqs']?.points || [])
+    .map((p) => Number(p.tags?.size_mb))
+    .filter((v) => Number.isFinite(v) && v > 0);
+
+  if (taggedSizes.length > 0) {
+    const sum = taggedSizes.reduce((a, b) => a + b, 0);
+    return {
+      avg: sum / taggedSizes.length,
+      max: Math.max(...taggedSizes),
+      source: 'http_reqs.tags.size_mb',
+    };
+  }
+
+  return null;
 }
 
 /**

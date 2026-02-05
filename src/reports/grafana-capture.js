@@ -11,12 +11,29 @@ const path = require('path');
 const GRAFANA_URL = process.env.GRAFANA_URL || 'http://localhost:3000';
 const DASHBOARD_UID = 'k6-performance';
 
-// Panel IDs from the K6 dashboard (adjust based on your dashboard)
+// Panel IDs matching the k6-performance dashboard
 const PANELS = {
-  vus: { id: 5, title: 'Virtual Users Over Time', width: 800, height: 300 },
-  rps: { id: 6, title: 'Requests per Second', width: 800, height: 300 },
-  responseTime: { id: 7, title: 'Response Time (Mean, P90, P95, P99)', width: 800, height: 400 },
-  responseTimeBreakdown: { id: 8, title: 'Response Time Breakdown', width: 800, height: 400 },
+  // Overview stats
+  activeVus:       { id: 1,  title: 'Active VUs',           width: 400, height: 200 },
+  totalRequests:   { id: 2,  title: 'Total Requests',       width: 400, height: 200 },
+  currentRps:      { id: 3,  title: 'Current RPS',          width: 400, height: 200 },
+  successRate:     { id: 4,  title: 'Success Rate',         width: 400, height: 200 },
+  p95ResponseTime: { id: 5,  title: 'P95 Response Time',    width: 400, height: 200 },
+  p99ResponseTime: { id: 6,  title: 'P99 Response Time',    width: 400, height: 200 },
+  // Load profile
+  vusOverTime:     { id: 7,  title: 'Virtual Users Over Time',              width: 800, height: 350 },
+  throughput:      { id: 8,  title: 'Throughput (Requests/s & Iterations)', width: 800, height: 350 },
+  // Response times
+  percentiles:     { id: 9,  title: 'Response Time Percentiles (P50/P90/P95/P99)', width: 800, height: 400 },
+  timingBreakdown: { id: 10, title: 'HTTP Timing Breakdown (Stacked Phases)',      width: 800, height: 400 },
+  // Errors
+  errorRate:       { id: 11, title: 'Error Rate % Over Time',              width: 800, height: 350 },
+  errorBreakdown:  { id: 12, title: 'Error Breakdown by HTTP Status',      width: 800, height: 350 },
+  circuitBreaker:  { id: 13, title: 'Circuit Breaker & Semaphore Events',  width: 800, height: 350 },
+  // Scenario comparison
+  p95ByScenario:   { id: 14, title: 'P95 Response Time by Scenario',       width: 800, height: 350 },
+  errorByScenario: { id: 15, title: 'Error Rate % by Scenario',            width: 800, height: 350 },
+  rpsByScenario:   { id: 16, title: 'RPS by Scenario',                     width: 800, height: 350 },
 };
 
 /**

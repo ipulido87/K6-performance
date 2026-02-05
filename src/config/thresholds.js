@@ -1,113 +1,59 @@
 import { getEnvNumber } from './env-loader.js';
 
-// ============================================
-// SMOKE TEST - Basic functionality validation
-// Goal: Verify the app responds correctly under minimal load
-// ============================================
-export const smokeThresholds = {
-  http_req_failed: [`rate<${getEnvNumber('SMOKE_THRESHOLD_FAILED_RATE')}`],  // < 1% errors
-  http_req_duration: [
-    `p(95)<${getEnvNumber('SMOKE_THRESHOLD_P95_DURATION')}`,   // 95% under 3s
-    `p(99)<${getEnvNumber('SMOKE_THRESHOLD_P99_DURATION')}`    // 99% under 5s
-  ],
-};
-
-// ============================================
-// LOAD TEST - Behavior under expected normal load
-// Goal: Simulate typical production traffic
-// ============================================
-export const loadThresholds = {
-  http_req_failed: [`rate<${getEnvNumber('LOAD_THRESHOLD_FAILED_RATE')}`],  // < 5% errors
-  http_req_duration: [
-    `p(95)<${getEnvNumber('LOAD_THRESHOLD_P95_DURATION')}`,    // 95% under 8s
-    `p(99)<${getEnvNumber('LOAD_THRESHOLD_P99_DURATION')}`    // 99% under 15s
-  ],
-};
-
-// ============================================
-// STRESS TEST - Find the breaking point
-// Goal: Observe how the system degrades under extreme pressure
-// Thresholds are VERY permissive - the goal is to MEASURE, not pass/fail
-// ============================================
-export const stressThresholds = {
-  http_req_failed: [`rate<${getEnvNumber('STRESS_THRESHOLD_FAILED_RATE')}`],  // < 50% errors (permissive)
-  http_req_duration: [
-    `p(95)<${getEnvNumber('STRESS_THRESHOLD_P95_DURATION')}`,   // 95% under 60s
-    `p(99)<${getEnvNumber('STRESS_THRESHOLD_P99_DURATION')}`    // 99% under 90s
-  ],
-  // Observation metrics - high thresholds to avoid failing, just measure
-  rejected_semaphore: [`count<${getEnvNumber('STRESS_THRESHOLD_REJECTED_SEMAPHORE')}`],
-  shortcircuit: [`count<${getEnvNumber('STRESS_THRESHOLD_SHORTCIRCUIT')}`],
-};
-
-// ============================================
-// CAPACITY TEST - Find maximum healthy capacity
-// Goal: Identify the limit where the system meets SLAs without degradation
-// ============================================
-export const capacityThresholds = {
-  http_req_failed: [`rate<${getEnvNumber('CAPACITY_THRESHOLD_FAILED_RATE')}`],  // < 5% errors
-  http_req_duration: [
-    `p(95)<${getEnvNumber('CAPACITY_THRESHOLD_P95_DURATION')}`,   // 95% under 5s
-    `p(99)<${getEnvNumber('CAPACITY_THRESHOLD_P99_DURATION')}`   // 99% under 10s
-  ],
-  // These indicate the system entered self-protection mode
-  shortcircuit: [`count<${getEnvNumber('CAPACITY_THRESHOLD_CIRCUIT_BREAKERS')}`],
-  rejected_semaphore: [`count<${getEnvNumber('CAPACITY_THRESHOLD_SEMAPHORE')}`],
-  dropped_iterations: [`count<${getEnvNumber('CAPACITY_THRESHOLD_DROPPED')}`],
-};
-
-// ============================================
-// SPIKE TEST - Resilience to sudden traffic spikes
-// Goal: See how it handles sudden bursts of users
-// ============================================
-export const spikeThresholds = {
-  http_req_failed: [`rate<${getEnvNumber('SPIKE_THRESHOLD_FAILED_RATE')}`],  // < 20% errors
-  http_req_duration: [
-    `p(95)<${getEnvNumber('SPIKE_THRESHOLD_P95_DURATION')}`,   // 95% under 30s
-    `p(99)<${getEnvNumber('SPIKE_THRESHOLD_P99_DURATION')}`    // 99% under 45s
-  ],
-};
-
-// ============================================
-// SOAK TEST - Long-term stability
-// Goal: Detect memory leaks, gradual degradation, etc.
-// ============================================
-export const soakThresholds = {
-  http_req_failed: [`rate<${getEnvNumber('SOAK_THRESHOLD_FAILED_RATE')}`],  // < 5% errors
-  http_req_duration: [
-    `p(95)<${getEnvNumber('SOAK_THRESHOLD_P95_DURATION')}`,    // 95% under 10s
-    `p(99)<${getEnvNumber('SOAK_THRESHOLD_P99_DURATION')}`,    // 99% under 15s
-    `avg<${getEnvNumber('SOAK_THRESHOLD_AVG_DURATION')}`        // Average under 5s
-  ],
-};
-
-// ============================================
-// SIZE TEST - Payload size limits
-// Goal: Find the maximum payload size the system can handle
-// ============================================
-export const sizeThresholds = {
-  http_req_failed: [`rate<${getEnvNumber('SIZE_THRESHOLD_FAILED_RATE')}`],  // < 30% errors
-  http_req_duration: [`p(95)<${getEnvNumber('SIZE_THRESHOLD_P95_DURATION')}`],  // 95% under 60s
-};
-
+/**
+ * Dynamically builds k6 thresholds from .env variables.
+ * Reads {PREFIX}_THRESHOLD_* variables for the given test type.
+ *
+ * Supported threshold variables:
+ *   {PREFIX}_THRESHOLD_FAILED_RATE        -> http_req_failed: rate<X
+ *   {PREFIX}_THRESHOLD_P95_DURATION       -> http_req_duration: p(95)<X
+ *   {PREFIX}_THRESHOLD_P99_DURATION       -> http_req_duration: p(99)<X
+ *   {PREFIX}_THRESHOLD_AVG_DURATION       -> http_req_duration: avg<X
+ *   {PREFIX}_THRESHOLD_REJECTED_SEMAPHORE -> rejected_semaphore: count<X
+ *   {PREFIX}_THRESHOLD_SHORTCIRCUIT       -> shortcircuit: count<X
+ *   {PREFIX}_THRESHOLD_CIRCUIT_BREAKERS   -> shortcircuit: count<X (alias)
+ *   {PREFIX}_THRESHOLD_SEMAPHORE          -> rejected_semaphore: count<X (alias)
+ *   {PREFIX}_THRESHOLD_DROPPED            -> dropped_iterations: count<X
+ */
 export function getThresholds(testType) {
-  const thresholds = {
-    smoke: smokeThresholds,
-    load: loadThresholds,
-    stress: stressThresholds,
-    capacity: capacityThresholds,
-    spike: spikeThresholds,
-    soak: soakThresholds,
-    size: sizeThresholds,
-  };
+  const prefix = testType.toUpperCase();
+  const thresholds = {};
 
-  const threshold = thresholds[testType.toLowerCase()];
-
-  if (!threshold) {
-    throw new Error(
-      `Unknown test type: ${testType}. Available: ${Object.keys(thresholds).join(", ")}`
-    );
+  const failedRate = getEnvNumber(`${prefix}_THRESHOLD_FAILED_RATE`);
+  if (failedRate !== undefined) {
+    thresholds.http_req_failed = [`rate<${failedRate}`];
   }
 
-  return threshold;
+  const durationChecks = [];
+  const p95 = getEnvNumber(`${prefix}_THRESHOLD_P95_DURATION`);
+  if (p95 !== undefined) durationChecks.push(`p(95)<${p95}`);
+
+  const p99 = getEnvNumber(`${prefix}_THRESHOLD_P99_DURATION`);
+  if (p99 !== undefined) durationChecks.push(`p(99)<${p99}`);
+
+  const avg = getEnvNumber(`${prefix}_THRESHOLD_AVG_DURATION`);
+  if (avg !== undefined) durationChecks.push(`avg<${avg}`);
+
+  if (durationChecks.length > 0) {
+    thresholds.http_req_duration = durationChecks;
+  }
+
+  const semaphore = getEnvNumber(`${prefix}_THRESHOLD_REJECTED_SEMAPHORE`)
+    ?? getEnvNumber(`${prefix}_THRESHOLD_SEMAPHORE`);
+  if (semaphore !== undefined) {
+    thresholds.rejected_semaphore = [`count<${semaphore}`];
+  }
+
+  const shortcircuit = getEnvNumber(`${prefix}_THRESHOLD_SHORTCIRCUIT`)
+    ?? getEnvNumber(`${prefix}_THRESHOLD_CIRCUIT_BREAKERS`);
+  if (shortcircuit !== undefined) {
+    thresholds.shortcircuit = [`count<${shortcircuit}`];
+  }
+
+  const dropped = getEnvNumber(`${prefix}_THRESHOLD_DROPPED`);
+  if (dropped !== undefined) {
+    thresholds.dropped_iterations = [`count<${dropped}`];
+  }
+
+  return thresholds;
 }
